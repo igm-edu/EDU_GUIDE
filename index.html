@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>온보딩 허브</title>
+
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 데이터/연동 (시드 → 설정 → API 순서로 로드) -->
+  <script src="./onboarding-data.js"></script>
+  <script src="./onboarding-config.js"></script>
+  <script src="./onboarding-api.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Pretendard','ui-sans-serif','system-ui'] } } } }
+  </script>
+
+  <style>
+    [x-cloak] { display:none !important; }
+    body { font-family:'Pretendard',ui-sans-serif,system-ui; background:#F8FAFC; color:#111827; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .anim-fade-up { animation:fadeUp .4s ease both }
+    .card { background:#fff; border:1.5px solid #E5E7EB; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.04) }
+    .btn-primary { background:#2563EB; color:#fff; padding:11px 20px; border-radius:11px; font-weight:700; font-size:14px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:7px; text-decoration:none; box-shadow:0 4px 14px rgba(37,99,235,.26); transition:background .2s, transform .15s }
+    .btn-primary:hover { background:#1D4ED8; transform:translateY(-1px) }
+    .btn-primary:disabled { background:#D1D5DB; color:#9CA3AF; cursor:not-allowed; transform:none; box-shadow:none }
+    .btn-outline { background:#fff; color:#374151; padding:11px 20px; border-radius:11px; font-weight:700; font-size:14px; border:1.5px solid #E5E7EB; cursor:pointer; display:inline-flex; align-items:center; gap:7px; text-decoration:none; transition:all .2s }
+    .btn-outline:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF }
+    .btn-ghost { background:transparent; color:#6B7280; padding:8px 12px; border-radius:8px; font-weight:600; font-size:14px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all .15s }
+    .btn-ghost:hover { background:#F3F4F6; color:#111827 }
+    .inp { width:100%; padding:9px 12px; font-size:14px; color:#111827; background:#fff; border:1px solid #E5E7EB; border-radius:10px; transition:all .15s }
+    .inp:focus { outline:none; border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.1) }
+    .inp::placeholder { color:#CBD5E1 }
+    .lbl { display:block; font-size:12px; font-weight:700; color:#4B5563; margin-bottom:5px }
+    .chip { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:8px; font-size:12px; font-weight:600; border:1px solid #E5E7EB; text-decoration:none; transition:all .15s }
+    .chip.set { color:#1D4ED8; background:#EFF6FF; border-color:#BFDBFE } .chip.set:hover { background:#DBEAFE }
+    .chip.empty { color:#9CA3AF; background:#F9FAFB }
+    .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0 }
+  </style>
+</head>
+
+<body>
+<div x-data="hub()" x-init="init()" x-cloak class="min-h-screen">
+
+  <!-- HEADER -->
+  <header class="bg-white border-b border-gray-200 fixed top-0 w-full z-50">
+    <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="./igm-logo.png" alt="IGM 세계경영연구원" class="h-8">
+        <span class="text-sm font-bold text-gray-300">|</span>
+        <span class="text-sm font-bold text-gray-600" x-text="store.hub?.title || '온보딩 허브'"></span>
+      </div>
+      <div x-show="authed" class="flex items-center gap-3">
+        <span class="text-[11px] font-bold px-2.5 py-1 rounded-full"
+              :class="isRemote ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500 bg-gray-100'"
+              x-text="isRemote ? '시트 연동' : '로컬 모드'"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- LOADING -->
+  <main x-show="screen === 'loading'" class="pt-16 min-h-screen flex items-center justify-center">
+    <div class="flex flex-col items-center gap-3 text-gray-400">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="animate-spin" style="animation-duration:.8s"><circle cx="12" cy="12" r="10" stroke="#E5E7EB" stroke-width="3"/><path d="M22 12a10 10 0 0 1-10 10" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/></svg>
+      <span class="text-sm font-medium">불러오는 중…</span>
+    </div>
+  </main>
+
+  <!-- LOCK -->
+  <main x-show="screen === 'locked'" class="pt-16 min-h-screen flex items-center justify-center">
+    <div class="max-w-sm w-full mx-auto px-6">
+      <div class="card p-8 text-center anim-fade-up">
+        <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-5">
+          <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h1 class="text-xl font-extrabold text-gray-900 mb-1.5">운영자 허브</h1>
+        <p class="text-sm text-gray-400 mb-6">암호를 입력하면 과정 관리로 들어갑니다.</p>
+        <input type="password" x-model="pwInput" @keydown.enter="tryLogin()" @input="pwError=false" placeholder="암호 입력"
+               class="inp text-center" :class="pwError ? '!border-red-300' : ''">
+        <p x-show="pwError" class="text-xs text-red-500 mt-2 font-medium">암호가 올바르지 않습니다.</p>
+        <button @click="tryLogin()" class="btn-primary w-full justify-center mt-5">확인</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════════ LIST ══════════════ -->
+  <main x-show="screen === 'list'" class="pt-16 min-h-screen">
+    <div class="max-w-4xl mx-auto px-6 py-10">
+
+      <div class="flex items-start justify-between gap-4 mb-8 flex-wrap">
+        <div>
+          <h1 class="text-[1.7rem] font-extrabold text-gray-900 mb-1" x-text="store.hub?.title || '온보딩 허브'"></h1>
+          <p class="text-sm text-gray-500" x-text="store.hub?.subtitle || '과정별 입과 전 안내를 관리합니다'"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button @click="exportFile()" class="btn-outline !py-2.5 !px-4" title="onboarding-data.js 내보내기">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            내보내기
+          </button>
+          <button @click="addCourse()" class="btn-primary !py-2.5 !px-4">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            새 과정 추가
+          </button>
+        </div>
+      </div>
+
+      <!-- 상태 배너 -->
+      <div x-show="!isRemote" class="mb-5 text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3 leading-relaxed">
+        지금은 <b>로컬 모드</b>입니다. 편집 내용은 이 브라우저에만 저장되며 배포된 참가자 페이지에는 반영되지 않습니다.
+        참가자에게 반영하려면 <b>구글 시트 연동</b>(README 참고)을 켜거나, <b>내보내기</b>로 파일을 받아 다시 배포하세요.
+      </div>
+
+      <!-- 과정 목록 -->
+      <div class="space-y-4">
+        <template x-for="(c, ci) in store.courses" :key="ci">
+          <div class="card p-6 anim-fade-up">
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                  <template x-if="c.tag"><span class="inline-flex items-center bg-blue-50 text-blue-600 text-[11px] font-bold px-2 py-0.5 rounded-full" x-text="c.tag"></span></template>
+                  <template x-if="c.active === false"><span class="inline-flex items-center bg-gray-100 text-gray-500 text-[11px] font-bold px-2 py-0.5 rounded-full">숨김</span></template>
+                  <span class="text-[11px] font-mono text-gray-400" x-text="'?c=' + c.slug"></span>
+                </div>
+                <h2 class="text-lg font-extrabold text-gray-900" x-text="c.courseName || '(이름 없음)'"></h2>
+              </div>
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <button @click="copyLink(c.slug)" class="btn-ghost" title="참가자 링크 복사">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  복사
+                </button>
+                <a :href="participantUrl(c.slug)" target="_blank" rel="noopener" class="btn-ghost" title="새 창에서 열기">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  열기
+                </a>
+                <button @click="editCourse(ci)" class="btn-outline !py-2 !px-3.5">편집</button>
+                <button @click="duplicateCourse(ci)" class="btn-ghost" title="복제">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  복제
+                </button>
+                <button @click="deleteCourse(ci)" class="btn-ghost !text-red-500 hover:!bg-red-50" title="삭제">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5">
+              <svg width="14" height="14" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span class="text-xs text-gray-500 truncate font-mono" x-text="participantUrl(c.slug)"></span>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <template x-for="f in linkFields" :key="f.key">
+                <a x-show="c[f.key]" :href="c[f.key]" target="_blank" rel="noopener" class="chip set"><span class="dot" style="background:#3B82F6"></span><span x-text="f.label"></span></a>
+              </template>
+              <template x-for="f in linkFields" :key="'e-'+f.key">
+                <span x-show="!c[f.key]" class="chip empty"><span class="dot" style="background:#D1D5DB"></span><span x-text="f.label + ' 미설정'"></span></span>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <div x-show="store.courses.length === 0" class="card p-10 text-center text-sm text-gray-400">
+          아직 과정이 없습니다. 오른쪽 위 <b class="text-gray-600">새 과정 추가</b>를 눌러 시작하세요.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════════ EDIT ══════════════ -->
+  <main x-show="screen === 'edit'" class="pt-16 min-h-screen">
+    <div class="max-w-2xl mx-auto px-6 py-10">
+
+      <button @click="cancelEdit()" class="btn-ghost mb-6 -ml-1">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        목록으로
+      </button>
+
+      <h1 class="text-[1.5rem] font-extrabold text-gray-900 mb-6" x-text="editIndex === -1 ? '새 과정 추가' : '과정 편집'"></h1>
+
+      <!-- 기본 정보 -->
+      <div class="card p-6 mb-5">
+        <h2 class="text-sm font-extrabold text-gray-900 mb-4">기본 정보</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="lbl">과정명</label>
+            <input type="text" x-model="form.courseName" class="inp" placeholder="예) 클로드 에이전트 기반 업무혁명">
+          </div>
+          <div>
+            <label class="lbl">과정 코드 (slug)</label>
+            <input type="text" x-model="form.slug" class="inp font-mono" placeholder="claude-agent"
+                   :class="slugError ? '!border-red-300' : ''" @input="slugError=''">
+            <p class="text-[11px] mt-1" :class="slugError ? 'text-red-500' : 'text-gray-400'"
+               x-text="slugError || '영문 소문자·숫자·하이픈. 참가자 주소: course.html?c=' + (form.slug||'…')"></p>
+          </div>
+          <div>
+            <label class="lbl">분류 태그 (선택)</label>
+            <input type="text" x-model="form.tag" class="inp" placeholder="예) AI 활용">
+          </div>
+          <div class="col-span-2 flex items-center gap-2">
+            <button type="button" @click="form.active = !form.active"
+                    class="w-10 h-6 rounded-full transition-colors flex items-center px-0.5"
+                    :class="form.active ? 'bg-blue-600 justify-end' : 'bg-gray-300 justify-start'">
+              <span class="w-5 h-5 bg-white rounded-full shadow"></span>
+            </button>
+            <span class="text-sm text-gray-600" x-text="form.active ? '허브 목록에 표시' : '숨김 (목록에서 감춤)'"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 링크 -->
+      <div class="card p-6 mb-5">
+        <h2 class="text-sm font-extrabold text-gray-900 mb-4">링크</h2>
+        <div class="space-y-4">
+          <template x-for="f in linkFields" :key="f.key">
+            <div>
+              <label class="lbl" x-text="f.label"></label>
+              <input type="url" x-model="form[f.key]" class="inp" :placeholder="f.placeholder">
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 단계 문구·이미지 -->
+      <div class="card p-6 mb-5">
+        <h2 class="text-sm font-extrabold text-gray-900 mb-1">단계별 안내 문구 · 이미지</h2>
+        <p class="text-xs text-gray-400 mb-5">설명·항목 문구에서 줄바꿈은 Enter 로 입력하면 그대로 반영됩니다.</p>
+        <div class="space-y-6">
+          <template x-for="(step, si) in form.steps" :key="si">
+            <div class="border border-gray-100 rounded-2xl p-4 bg-gray-50/40">
+              <div class="flex items-center justify-between mb-3">
+                <div class="inline-flex items-center bg-blue-50 text-blue-600 text-[11px] font-extrabold px-2.5 py-1 rounded-full" x-text="'STEP ' + (si+1)"></div>
+                <div class="flex items-center gap-1">
+                  <button type="button" @click="moveStep(si,-1)" :disabled="si===0" class="btn-ghost !px-2 disabled:opacity-30" title="위로">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+                  </button>
+                  <button type="button" @click="moveStep(si,1)" :disabled="si===form.steps.length-1" class="btn-ghost !px-2 disabled:opacity-30" title="아래로">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <button type="button" @click="removeStep(si)" class="btn-ghost !text-red-500 hover:!bg-red-50 !px-2" title="단계 삭제">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div>
+                  <label class="lbl">단계 제목</label>
+                  <input type="text" x-model="step.title" class="inp">
+                </div>
+                <div>
+                  <label class="lbl">단계 설명</label>
+                  <textarea x-model="step.description" rows="2" class="inp resize-none"></textarea>
+                </div>
+                <div>
+                  <label class="lbl">이미지 (선택)</label>
+                  <div class="flex gap-2">
+                    <input type="text" x-model="step.image" class="inp flex-1" placeholder="파일 선택 · 또는 step1.png · https://...">
+                    <button type="button" @click="pickImage(si)" class="btn-outline !py-2 !px-3 whitespace-nowrap flex-shrink-0">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      파일 선택
+                    </button>
+                  </div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <p class="text-[11px] text-gray-400 flex-1">내 컴퓨터에서 고르거나(자동 축소·내장), images 폴더 파일명·웹 주소를 입력할 수 있어요.</p>
+                    <button type="button" x-show="step.image" @click="step.image=''" class="text-[11px] font-semibold text-red-500 hover:underline flex-shrink-0">지우기</button>
+                  </div>
+                  <template x-if="step.image">
+                    <div class="mt-2 flex items-center gap-2">
+                      <img :src="(/^(https?:\/\/|\.?\/|data:)/i.test(step.image) ? step.image : './images/' + step.image)" alt="미리보기" class="h-24 rounded-lg border border-gray-200 object-cover" onerror="this.style.display='none'">
+                      <span x-show="/^data:/.test(step.image)" class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">내장 이미지</span>
+                    </div>
+                  </template>
+                </div>
+                <div>
+                  <label class="lbl">체크 항목 (절차)</label>
+                  <div class="space-y-2.5">
+                    <template x-for="(task, ti) in step.tasks" :key="ti">
+                      <div class="flex gap-2 items-start bg-white border border-gray-100 rounded-xl p-2.5">
+                        <span class="w-6 h-6 mt-0.5 flex-shrink-0 rounded-full bg-blue-100 text-blue-600 text-xs font-bold flex items-center justify-center" x-text="ti+1"></span>
+                        <div class="flex-1 min-w-0 space-y-1.5">
+                          <input type="text" x-model="task.title" class="inp !py-1.5" placeholder="항목 제목">
+                          <textarea x-model="task.desc" rows="1" class="inp !py-1.5 text-xs resize-none" placeholder="항목 설명"></textarea>
+
+                          <!-- 링크 버튼 -->
+                          <div class="flex items-center gap-2 pt-0.5">
+                            <button type="button" @click="task.link.enabled = !task.link.enabled"
+                                    class="w-8 h-5 rounded-full transition-colors flex items-center px-0.5 flex-shrink-0"
+                                    :class="task.link.enabled ? 'bg-blue-600 justify-end' : 'bg-gray-300 justify-start'">
+                              <span class="w-4 h-4 bg-white rounded-full shadow"></span>
+                            </button>
+                            <span class="text-[11px] font-semibold text-gray-500">이 항목에 링크 버튼 표시</span>
+                          </div>
+                          <div x-show="task.link.enabled" class="grid grid-cols-1 gap-1.5 pl-0.5">
+                            <input type="text" x-model="task.link.label" class="inp !py-1.5 text-xs" placeholder="버튼 문구 (예: 다운로드 페이지 이동)">
+                            <input type="url" x-model="task.link.url" class="inp !py-1.5 text-xs" placeholder="링크 주소 https://...">
+                          </div>
+                        </div>
+                        <button type="button" @click="removeTask(si, ti)" class="btn-ghost !text-red-400 hover:!text-red-600 hover:!bg-red-50 !px-1.5 mt-0.5 flex-shrink-0" title="항목 삭제">
+                          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                      </div>
+                    </template>
+                  </div>
+                  <button type="button" @click="addTask(si)" class="btn-ghost !text-blue-600 hover:!bg-blue-50 mt-2 text-xs">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    항목 추가
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+        <button type="button" @click="addStep()" class="btn-outline w-full justify-center mt-4 !py-2.5">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          단계 추가
+        </button>
+      </div>
+
+      <!-- FAQ -->
+      <div class="card p-6 mb-5">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-sm font-extrabold text-gray-900">자주 묻는 질문 (FAQ)</h2>
+          <button @click="loadDefaultFaq()" class="text-xs font-semibold text-blue-600 hover:text-blue-800">공통 FAQ 불러오기</button>
+        </div>
+        <p class="text-xs text-gray-400 mb-4">비워두면 공통 기본 FAQ가 표시됩니다.</p>
+        <div class="space-y-3">
+          <template x-for="(fq, fi) in form.faq" :key="fi">
+            <div class="border border-gray-100 rounded-xl p-3 bg-gray-50/40">
+              <div class="flex items-start gap-2">
+                <div class="flex-1 space-y-2">
+                  <input type="text" x-model="fq.q" class="inp !py-1.5 font-semibold" placeholder="질문">
+                  <textarea x-model="fq.a" rows="2" class="inp !py-1.5 text-sm resize-none" placeholder="답변"></textarea>
+                </div>
+                <button @click="removeFaq(fi)" class="btn-ghost !text-red-500 hover:!bg-red-50 !px-2 mt-0.5" title="삭제">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+        <button @click="addFaq()" class="btn-outline w-full justify-center mt-3 !py-2.5">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          질문 추가
+        </button>
+      </div>
+
+      <!-- 저장 -->
+      <div class="flex items-center justify-between gap-2 sticky bottom-0 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent py-4">
+        <button @click="cancelEdit()" class="btn-ghost">취소</button>
+        <button @click="saveCourse()" :disabled="saving" class="btn-primary">
+          <svg x-show="!saving" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <svg x-show="saving" width="15" height="15" viewBox="0 0 24 24" fill="none" class="animate-spin"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,.4)" stroke-width="3"/><path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+          <span x-text="saving ? '저장 중…' : '저장'"></span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div x-show="toast" x-transition class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2"
+       :class="toastErr ? 'bg-red-600' : 'bg-gray-900'" style="display:none">
+    <svg x-show="!toastErr" width="16" height="16" fill="none" stroke="#6EE7B7" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <svg x-show="toastErr" width="16" height="16" fill="none" stroke="#FCA5A5" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span x-text="toast"></span>
+  </div>
+
+</div>
+
+<script>
+function cloneTask(t) {
+  t = t || {};
+  const l = t.link || {};
+  return { title: t.title || '', desc: t.desc || '', link: { enabled: !!l.enabled, label: l.label || '', url: l.url || '' } };
+}
+function cloneStep(s) {
+  s = s || {};
+  return {
+    title: s.title || '', shortTitle: s.shortTitle || '', description: s.description || '', image: s.image || '',
+    tasks: (s.tasks || []).map(cloneTask)
+  };
+}
+
+function blankCourse(store) {
+  return {
+    slug: '', courseName: '', tag: '', active: true,
+    previewUrl: '', autoUrl: '', startUrl: '',
+    steps: (store.defaultSteps || []).map(cloneStep),
+    faq: []
+  };
+}
+
+// 이미 마이그레이션된 course(신규 구조)를 편집 폼으로 깊은 복사
+function toForm(course) {
+  return {
+    slug: course.slug || '', courseName: course.courseName || '', tag: course.tag || '',
+    active: course.active !== false,
+    previewUrl: course.previewUrl || '', autoUrl: course.autoUrl || '', startUrl: course.startUrl || '',
+    steps: (course.steps || []).map(cloneStep),
+    faq: Array.isArray(course.faq) ? course.faq.map(f => ({ q: f.q || '', a: f.a || '' })) : []
+  };
+}
+
+function fromForm(form) {
+  return {
+    slug: (form.slug || '').trim(),
+    courseName: (form.courseName || '').trim(),
+    tag: (form.tag || '').trim(),
+    active: !!form.active,
+    previewUrl: (form.previewUrl || '').trim(),
+    autoUrl: (form.autoUrl || '').trim(),
+    startUrl: (form.startUrl || '').trim(),
+    steps: (form.steps || []).map(s => ({
+      title: (s.title || '').trim(),
+      shortTitle: (s.shortTitle || '').trim(),
+      description: (s.description || '').trim(),
+      image: (s.image || '').trim(),
+      tasks: (s.tasks || []).map(t => ({
+        title: (t.title || '').trim(),
+        desc: (t.desc || '').trim(),
+        link: { enabled: !!(t.link && t.link.enabled), label: (t.link && t.link.label || '').trim(), url: (t.link && t.link.url || '').trim() }
+      }))
+    })),
+    faq: (form.faq || []).map(f => ({ q: (f.q || '').trim(), a: (f.a || '').trim() })).filter(f => f.q || f.a)
+  };
+}
+
+function hub() {
+  return {
+    store: { hub: {}, defaultSteps: [], defaultFaq: [], courses: [] },
+    isRemote: false,
+    screen: 'loading',
+    authed: false,
+    pwInput: '', pwError: false,
+
+    editIndex: -1,
+    form: null,
+    slugError: '',
+    saving: false,
+
+    linkFields: [
+      { key: 'previewUrl', label: '과정 교안 미리보기',               placeholder: 'https://padlet.com/...' },
+      { key: 'autoUrl',    label: '자동화 미리보기',                  placeholder: 'https://youtu.be/...' },
+      { key: 'startUrl',   label: '과정 시작 (완료 페이지, 선택)',     placeholder: '비우면 버튼 숨김' }
+    ],
+    toast: '', toastErr: false, _t: null,
+
+    async init() {
+      this.isRemote = OnboardingAPI.isRemote;
+      try { const r = await OnboardingAPI.load(); this.store = normalizeStore(r.store); }
+      catch (e) { this.store = normalizeStore(OnboardingAPI.seedStore()); }
+      const pw = OnboardingAPI.config.hubPassword;
+      if (pw) { this.authed = false; this.screen = 'locked'; }
+      else    { this.authed = true;  this.screen = 'list'; }
+    },
+
+    tryLogin() {
+      if ((this.pwInput || '') === OnboardingAPI.config.hubPassword) { this.authed = true; this.screen = 'list'; }
+      else { this.pwError = true; }
+    },
+
+    // ── CRUD ──
+    addCourse() {
+      this.editIndex = -1;
+      this.form = blankCourse(this.store);
+      this.slugError = '';
+      this.screen = 'edit';
+      window.scrollTo(0, 0);
+    },
+    editCourse(i) {
+      this.editIndex = i;
+      this.form = toForm(this.store.courses[i]);
+      this.slugError = '';
+      this.screen = 'edit';
+      window.scrollTo(0, 0);
+    },
+    async duplicateCourse(i) {
+      const src = this.store.courses[i];
+      const copy = JSON.parse(JSON.stringify(src));
+      // 고유 slug 생성: <slug>-copy, -copy-2 …
+      const base = (src.slug || 'course') + '-copy';
+      let s = base, n = 2;
+      while (this.store.courses.some(c => c.slug === s)) s = base + '-' + (n++);
+      copy.slug = s;
+      copy.courseName = (src.courseName || '') + ' (복사본)';
+      this.store.courses.splice(i + 1, 0, copy);
+      await this.persist('과정을 복제했습니다.');
+      // 복제본 바로 편집 열기
+      this.editCourse(i + 1);
+    },
+    async deleteCourse(i) {
+      const c = this.store.courses[i];
+      if (!confirm(`"${c.courseName || c.slug}" 과정을 삭제할까요?`)) return;
+      this.store.courses.splice(i, 1);
+      await this.persist('과정을 삭제했습니다.');
+    },
+    cancelEdit() { this.form = null; this.screen = 'list'; },
+
+    // ── 단계 / 항목 추가·삭제 ──
+    addStep() { this.form.steps.push(OnboardingAPI.blankStep()); },
+    removeStep(si) {
+      if (this.form.steps.length <= 1) { this.showToast('최소 1개 단계가 필요합니다.', true); return; }
+      if (!confirm(`STEP ${si + 1} 을(를) 삭제할까요?`)) return;
+      this.form.steps.splice(si, 1);
+    },
+    moveStep(si, dir) {
+      const ni = si + dir;
+      if (ni < 0 || ni >= this.form.steps.length) return;
+      const arr = this.form.steps;
+      [arr[si], arr[ni]] = [arr[ni], arr[si]];
+    },
+    addTask(si) { this.form.steps[si].tasks.push(OnboardingAPI.blankTask()); },
+    removeTask(si, ti) {
+      if (this.form.steps[si].tasks.length <= 1) { this.showToast('최소 1개 항목이 필요합니다.', true); return; }
+      this.form.steps[si].tasks.splice(ti, 1);
+    },
+
+    validSlug() {
+      const s = (this.form.slug || '').trim();
+      if (!s) return '과정 코드를 입력하세요.';
+      if (!/^[a-z0-9-]+$/.test(s)) return '영문 소문자·숫자·하이픈만 사용할 수 있어요.';
+      const dup = this.store.courses.some((c, idx) => c.slug === s && idx !== this.editIndex);
+      if (dup) return '이미 사용 중인 과정 코드예요.';
+      return '';
+    },
+
+    async saveCourse() {
+      const err = this.validSlug();
+      if (err) { this.slugError = err; this.showToast(err, true); return; }
+      if (!(this.form.courseName || '').trim()) { this.showToast('과정명을 입력하세요.', true); return; }
+      const course = fromForm(this.form);
+      if (this.editIndex === -1) this.store.courses.push(course);
+      else this.store.courses.splice(this.editIndex, 1, course);
+      const ok = await this.persist(this.editIndex === -1 ? '과정을 추가했습니다.' : '변경 사항을 저장했습니다.');
+      if (ok) { this.form = null; this.screen = 'list'; }
+    },
+
+    // ── 저장 (시트 + 캐시) ──
+    async persist(msg) {
+      this.saving = true;
+      const res = await OnboardingAPI.save(this.store);
+      this.saving = false;
+      if (res.ok) {
+        this.showToast(res.remote ? (msg + ' (시트 반영됨)') : msg, false);
+        return true;
+      } else {
+        this.showToast('시트 저장 실패: ' + (res.error || '') + ' — 로컬에는 저장됨', true);
+        return true; // 로컬 캐시엔 저장되었으므로 편집은 닫음
+      }
+    },
+
+    // ── 이미지: 파일 탐색기에서 선택 → 자동 축소 → data URL 내장 ──
+    pickImage(si) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        this.processImage(file, (dataUrl) => { this.form.steps[si].image = dataUrl; });
+      };
+      input.click();
+    },
+    processImage(file, cb) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 1200;
+          let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+          if (w > MAX || h > MAX) { const r = Math.min(MAX / w, MAX / h); w = Math.round(w * r); h = Math.round(h * r); }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const isPng = /png/i.test(file.type);
+          let out;
+          try { out = canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.82); }
+          catch (err) { this.showToast('이미지 처리 실패: ' + err, true); return; }
+          const kb = Math.round(out.length * 0.75 / 1024);
+          cb(out);
+          if (kb > 400) this.showToast('이미지가 큽니다(약 ' + kb + 'KB). 더 작은 이미지를 권장해요.', true);
+          else this.showToast('이미지를 넣었습니다 (약 ' + kb + 'KB).');
+        };
+        img.onerror = () => this.showToast('이미지를 읽지 못했습니다.', true);
+        img.src = reader.result;
+      };
+      reader.onerror = () => this.showToast('파일을 읽지 못했습니다.', true);
+      reader.readAsDataURL(file);
+    },
+
+    // ── FAQ ──
+    addFaq() { this.form.faq.push({ q: '', a: '' }); },
+    removeFaq(i) { this.form.faq.splice(i, 1); },
+    loadDefaultFaq() {
+      this.form.faq = (this.store.defaultFaq || []).map(f => ({ q: f.q || '', a: f.a || '' }));
+      this.showToast('공통 FAQ를 불러왔습니다.');
+    },
+
+    // ── 링크/내보내기 ──
+    participantUrl(slug) { return new URL('course.html?c=' + encodeURIComponent(slug || ''), location.href).href; },
+    copyLink(slug) {
+      const url = this.participantUrl(slug);
+      const done = () => this.showToast('참가자 링크를 복사했습니다.');
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(done).catch(() => this.fallbackCopy(url, done));
+      else this.fallbackCopy(url, done);
+    },
+    fallbackCopy(text, done) {
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { this.showToast('복사 실패 — 주소를 직접 복사하세요.', true); }
+      document.body.removeChild(ta);
+    },
+    exportFile() {
+      const text = OnboardingAPI.exportDataJs(this.store);
+      const blob = new Blob([text], { type: 'text/javascript;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'onboarding-data.js';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      this.showToast('onboarding-data.js 를 내보냈습니다.');
+    },
+
+    showToast(msg, err) {
+      this.toast = msg; this.toastErr = !!err;
+      clearTimeout(this._t);
+      this._t = setTimeout(() => { this.toast = ''; }, 2800);
+    }
+  };
+}
+
+// 로드된 store 에 필수 키 보정
+function normalizeStore(s) {
+  s = s || {};
+  return {
+    hub: s.hub || {},
+    defaultSteps: Array.isArray(s.defaultSteps) ? s.defaultSteps : [],
+    defaultFaq: Array.isArray(s.defaultFaq) ? s.defaultFaq : [],
+    courses: Array.isArray(s.courses) ? s.courses : []
+  };
+}
+</script>
+</body>
+</html>
