@@ -102,6 +102,12 @@
 
   function seedStore() { return migrateStore(JSON.parse(JSON.stringify(SEED))); }
 
+  // 사실상 비어 있는 데이터인지 (새로 만든 빈 시트 등)
+  function isEmptyStore(s) {
+    if (!s || !Array.isArray(s.courses)) return true;
+    return s.courses.length === 0;
+  }
+
   function readCache() {
     try {
       const s = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
@@ -125,12 +131,25 @@
     } catch (e) { return null; }
   }
 
+  /* 로드 우선순위
+       1) 시트에 실제 데이터가 있으면 그것을 사용 (캐시 갱신)
+       2) 시트가 비어 있으면(=아직 초기화 안 됨) 캐시 → 시드 순으로 사용하고
+          remoteEmpty 로 알림. 이때 빈 시트 내용으로 캐시를 덮어쓰지 않는다.  */
   async function load() {
     const remote = await fetchRemote();
-    if (remote) { const st = migrateStore(remote); writeCache(st); return { store: st, source: 'remote' }; }
+
+    if (remote && !isEmptyStore(remote)) {
+      const st = migrateStore(remote);
+      writeCache(st);
+      return { store: st, source: 'remote', remoteEmpty: false };
+    }
+
+    const remoteEmpty = !!CFG.apiUrl;   // 연동은 켜져 있는데 시트가 비었음
     const cache = readCache();
-    if (cache) return { store: migrateStore(cache), source: 'cache' };
-    return { store: seedStore(), source: 'seed' };
+    if (cache && !isEmptyStore(cache)) {
+      return { store: migrateStore(cache), source: 'cache', remoteEmpty };
+    }
+    return { store: seedStore(), source: 'seed', remoteEmpty };
   }
 
   // 공통 POST
@@ -179,7 +198,7 @@
 
   window.OnboardingAPI = {
     load, save, saveCourse, deleteCourse, buildSteps, normalizeImg, migrateStore, migrateCourse,
-    blankStep, blankTask, readCache, writeCache, seedStore, exportDataJs,
+    blankStep, blankTask, readCache, writeCache, seedStore, exportDataJs, isEmptyStore,
     isRemote: !!CFG.apiUrl, config: CFG, seed: SEED
   };
 })();

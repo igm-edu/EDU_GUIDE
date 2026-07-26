@@ -110,6 +110,25 @@
         </div>
       </div>
 
+      <!-- 시트 비어 있음 안내 -->
+      <div x-show="remoteEmpty" class="mb-5 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl px-4 py-3.5">
+        <div class="flex items-start gap-2.5">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <div class="text-xs leading-relaxed flex-1">
+            <b>시트가 아직 비어 있습니다.</b> 아래 목록은 이 브라우저에 저장된 내용(또는 기본값)이에요.
+            <b>전체 반영</b>을 누르면 이 내용이 시트에 기록되어 초기화됩니다.
+            <div class="mt-1.5 text-blue-600">
+              예전 <b>data</b> 시트의 내용을 옮기려면, Apps Script 편집기에서
+              <code class="bg-white px-1 py-0.5 rounded border border-blue-200">migrateFromLegacySheet()</code> 를 먼저 실행하고 새로고침하세요.
+            </div>
+            <button @click="persist('시트를 초기화했습니다.')" :disabled="saving"
+                    class="btn-primary !py-2 !px-4 mt-3 !text-xs">
+              <span x-text="saving ? '반영 중…' : '지금 시트에 반영하기'"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- 상태 배너 -->
       <div x-show="!isRemote" class="mb-5 text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3 leading-relaxed">
         지금은 <b>로컬 모드</b>입니다. 편집 내용은 이 브라우저에만 저장되며 배포된 참가자 페이지에는 반영되지 않습니다.
@@ -441,6 +460,8 @@ function hub() {
     form: null,
     slugError: '',
     saving: false,
+    remoteEmpty: false,
+    dataSource: '',
 
     linkFields: [
       { key: 'previewUrl', label: '과정 교안 미리보기',               placeholder: 'https://padlet.com/...' },
@@ -451,8 +472,13 @@ function hub() {
 
     async init() {
       this.isRemote = OnboardingAPI.isRemote;
-      try { const r = await OnboardingAPI.load(); this.store = normalizeStore(r.store); }
-      catch (e) { this.store = normalizeStore(OnboardingAPI.seedStore()); }
+      try {
+        const r = await OnboardingAPI.load();
+        this.store = normalizeStore(r.store);
+        this.remoteEmpty = !!r.remoteEmpty;
+        this.dataSource = r.source;
+      }
+      catch (e) { this.store = normalizeStore(OnboardingAPI.seedStore()); this.dataSource = 'seed'; }
       const pw = OnboardingAPI.config.hubPassword;
       if (pw) { this.authed = false; this.screen = 'locked'; }
       else    { this.authed = true;  this.screen = 'list'; }
@@ -563,11 +589,15 @@ function hub() {
 
     // ── 전체 저장 (구조 이관·일괄 반영용) ──
     async persist(msg) {
+      // 빈 데이터로 시트를 덮어써서 날리는 사고 방지
+      if (OnboardingAPI.isEmptyStore(this.store) &&
+          !confirm('과정이 하나도 없는 상태입니다. 이대로 시트에 반영하면 시트 내용이 비워집니다. 계속할까요?')) return false;
       this.saving = true;
       const res = await OnboardingAPI.save(this.store);
       this.saving = false;
       if (res.ok) {
         this.showToast(res.remote ? (msg + ' (시트 반영됨)') : msg, false);
+        this.remoteEmpty = false;
         return true;
       } else {
         this.showToast('시트 저장 실패: ' + (res.error || '') + ' — 로컬에는 저장됨', true);
