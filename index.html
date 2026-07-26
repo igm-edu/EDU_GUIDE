@@ -94,6 +94,11 @@
           <p class="text-sm text-gray-500" x-text="store.hub?.subtitle || '과정별 입과 전 안내를 관리합니다'"></p>
         </div>
         <div class="flex items-center gap-2">
+          <button x-show="isRemote" @click="persist('전체 데이터를 시트에 반영했습니다.')" :disabled="saving"
+                  class="btn-outline !py-2.5 !px-4" title="현재 전체 데이터를 시트에 다시 기록합니다 (구조 이관용)">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            전체 반영
+          </button>
           <button @click="exportFile()" class="btn-outline !py-2.5 !px-4" title="onboarding-data.js 내보내기">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             내보내기
@@ -483,15 +488,20 @@ function hub() {
       copy.slug = s;
       copy.courseName = (src.courseName || '') + ' (복사본)';
       this.store.courses.splice(i + 1, 0, copy);
-      await this.persist('과정을 복제했습니다.');
+      await this.persistCourse(copy, '과정을 복제했습니다.');
       // 복제본 바로 편집 열기
       this.editCourse(i + 1);
     },
     async deleteCourse(i) {
       const c = this.store.courses[i];
       if (!confirm(`"${c.courseName || c.slug}" 과정을 삭제할까요?`)) return;
+      const slug = c.slug;
       this.store.courses.splice(i, 1);
-      await this.persist('과정을 삭제했습니다.');
+      this.saving = true;
+      const res = await OnboardingAPI.deleteCourse(this.store, slug);
+      this.saving = false;
+      if (res.ok) this.showToast(res.remote ? '과정을 삭제했습니다. (시트 반영됨)' : '과정을 삭제했습니다.');
+      else this.showToast('시트 삭제 실패: ' + (res.error || '') + ' — 로컬에는 반영됨', true);
     },
     cancelEdit() { this.form = null; this.screen = 'list'; },
 
@@ -528,13 +538,30 @@ function hub() {
       if (err) { this.slugError = err; this.showToast(err, true); return; }
       if (!(this.form.courseName || '').trim()) { this.showToast('과정명을 입력하세요.', true); return; }
       const course = fromForm(this.form);
-      if (this.editIndex === -1) this.store.courses.push(course);
+      const isNew = this.editIndex === -1;
+      const prevSlug = isNew ? null : this.store.courses[this.editIndex].slug;
+      if (isNew) this.store.courses.push(course);
       else this.store.courses.splice(this.editIndex, 1, course);
-      const ok = await this.persist(this.editIndex === -1 ? '과정을 추가했습니다.' : '변경 사항을 저장했습니다.');
-      if (ok) { this.form = null; this.screen = 'list'; }
+
+      // 코드(slug)를 바꾼 경우: 예전 행을 시트에서 정리
+      if (prevSlug && prevSlug !== course.slug) {
+        await OnboardingAPI.deleteCourse(this.store, prevSlug);
+      }
+      await this.persistCourse(course, isNew ? '과정을 추가했습니다.' : '변경 사항을 저장했습니다.');
+      this.form = null; this.screen = 'list';
     },
 
-    // ── 저장 (시트 + 캐시) ──
+    // ── 부분 저장: 해당 과정 행만 기록 (다른 과정에 영향 없음) ──
+    async persistCourse(course, msg) {
+      this.saving = true;
+      const res = await OnboardingAPI.saveCourse(this.store, course);
+      this.saving = false;
+      if (res.ok) this.showToast(res.remote ? (msg + ' (시트 반영됨)') : msg, false);
+      else this.showToast('시트 저장 실패: ' + (res.error || '') + ' — 로컬에는 저장됨', true);
+      return true;
+    },
+
+    // ── 전체 저장 (구조 이관·일괄 반영용) ──
     async persist(msg) {
       this.saving = true;
       const res = await OnboardingAPI.save(this.store);
@@ -544,7 +571,7 @@ function hub() {
         return true;
       } else {
         this.showToast('시트 저장 실패: ' + (res.error || '') + ' — 로컬에는 저장됨', true);
-        return true; // 로컬 캐시엔 저장되었으므로 편집은 닫음
+        return true;
       }
     },
 

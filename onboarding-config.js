@@ -13,7 +13,7 @@
    ============================================================================ */
 
 window.ONBOARDING_CONFIG = {
-  apiUrl:      "https://script.google.com/macros/s/AKfycbywYMOZ7Sf01caKC2WrfAi00tHhdFKk9yDIRsmAGTbKYudPfy4QOpYCDeXY_aDf3by8/exec",          // 예) https://script.google.com/macros/s/AKfyc.../exec
+  apiUrl:      "https://script.google.com/macros/s/AKfycbxLoqKoBcztDpH5eDllC3DrHBH3UwHZh3fqC2x-wr6g3Qya64BdsjUUJrnsQGKTu4T7/exec",          // 예) https://script.google.com/macros/s/AKfyc.../exec
   apiToken:    "igm2026",          // 예) igm-onboarding-2026
   hubPassword: "igm2026"
 };

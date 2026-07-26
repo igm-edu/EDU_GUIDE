@@ -133,21 +133,41 @@
     return { store: seedStore(), source: 'seed' };
   }
 
-  async function save(store) {
-    writeCache(store);
-    if (!CFG.apiUrl) return { ok: true, remote: false };
+  // 공통 POST
+  async function post_(payload) {
     try {
       const r = await fetch(CFG.apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ token: CFG.apiToken || '', data: store })
+        body: JSON.stringify(Object.assign({ token: CFG.apiToken || '' }, payload))
       });
       const j = await r.json().catch(() => null);
-      if (j && j.ok) return { ok: true, remote: true };
+      if (j && j.ok) return { ok: true, remote: true, mode: j.mode };
       return { ok: false, remote: true, error: (j && j.error) || '시트 저장 응답 오류' };
     } catch (e) {
       return { ok: false, remote: true, error: String(e) };
     }
+  }
+
+  // 전체 저장 (구조 이관·일괄 저장용)
+  async function save(store) {
+    writeCache(store);
+    if (!CFG.apiUrl) return { ok: true, remote: false };
+    return post_({ action: 'saveAll', data: store });
+  }
+
+  // 과정 하나만 저장 — 다른 과정 데이터를 건드리지 않음
+  async function saveCourse(store, course) {
+    writeCache(store);
+    if (!CFG.apiUrl) return { ok: true, remote: false };
+    return post_({ action: 'saveCourse', course: course });
+  }
+
+  // 과정 하나만 삭제
+  async function deleteCourse(store, slug) {
+    writeCache(store);
+    if (!CFG.apiUrl) return { ok: true, remote: false };
+    return post_({ action: 'deleteCourse', slug: slug });
   }
 
   function exportDataJs(store) {
@@ -158,7 +178,7 @@
   }
 
   window.OnboardingAPI = {
-    load, save, buildSteps, normalizeImg, migrateStore, migrateCourse,
+    load, save, saveCourse, deleteCourse, buildSteps, normalizeImg, migrateStore, migrateCourse,
     blankStep, blankTask, readCache, writeCache, seedStore, exportDataJs,
     isRemote: !!CFG.apiUrl, config: CFG, seed: SEED
   };
