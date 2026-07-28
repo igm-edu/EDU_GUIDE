@@ -75,6 +75,24 @@ window.ONBOARDING = {
       previewUrl: "https://padlet.com/igm2023/claude_5",
       autoUrl:    "https://youtu.be/zXXXNCCWLBk?si=mcuznmRGs7CV0Ctg",
       startUrl:   "",
+
+      // 메인 화면에 표시되는 교육 안내
+      info: {
+        title: "교육 안내",
+        rows: [
+          { label: "일시", value: "2026년 7월 29일(수) 08:30 ~ 17:30 (8시간)", linkLabel: "", linkUrl: "" },
+          { label: "장소", value: "IGM세계경영연구원 2층 더블린\n서울 중구 장충단로 8길 11-16", linkLabel: "지도", linkUrl: "https://naver.me/5GpXhkyi" },
+          { label: "주차", value: "IGM세계경영연구원 본원 1층 (사전 설문 내 차량 번호를 기재해주세요.)", linkLabel: "", linkUrl: "" }
+        ],
+        suppliesTitle: "준비물",
+        supplies: [
+          "개인 노트북 (사내 보안 상 AI 사용이 가능한지 점검)",
+          "노트북 충전기 및 마우스",
+          "클로드 회원가입이 완료된 계정",
+          "명함 지참 (동료 원우님들과 네트워크를 만들어가세요)",
+          "이번 교육을 통해 해소하고 싶은 고민"
+        ]
+      },
       steps: [
         {
           title: "클로드 데스크탑 설치",

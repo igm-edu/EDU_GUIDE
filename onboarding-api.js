@@ -52,6 +52,22 @@
     };
   }
 
+  // 교육 안내 블록 정규화
+  function normInfo(info) {
+    info = info || {};
+    return {
+      title: info.title || '교육 안내',
+      rows: (Array.isArray(info.rows) ? info.rows : []).map(r => ({
+        label: (r && r.label) || '',
+        value: (r && r.value) || '',
+        linkLabel: (r && r.linkLabel) || '',
+        linkUrl: (r && r.linkUrl) || ''
+      })),
+      suppliesTitle: info.suppliesTitle || '준비물',
+      supplies: (Array.isArray(info.supplies) ? info.supplies : []).map(s => String(s || ''))
+    };
+  }
+
   function migrateCourse(course, rawDefaultSteps) {
     const ds = rawDefaultSteps || [];
     let steps;
@@ -68,6 +84,7 @@
       previewUrl: course.previewUrl || '',
       autoUrl: course.autoUrl || '',
       startUrl: course.startUrl || '',
+      info: normInfo(course.info),
       steps: steps,
       faq: Array.isArray(course.faq) ? course.faq.map(f => ({ q: f.q || '', a: f.a || '' })) : []
     };
@@ -98,6 +115,20 @@
 
   // 편집기용 빈 항목/단계
   function blankTask() { return { title: '', desc: '', link: { enabled: false, label: '', url: '' } }; }
+  function blankInfoRow() { return { label: '', value: '', linkLabel: '', linkUrl: '' }; }
+  // 예시 불러오기용 기본 안내 서식
+  function sampleInfo() {
+    return {
+      title: '교육 안내',
+      rows: [
+        { label: '일시', value: '2026년 0월 0일(요일) 00:00 ~ 00:00 (0시간)', linkLabel: '', linkUrl: '' },
+        { label: '장소', value: 'IGM세계경영연구원 2층 더블린\n서울 중구 장충단로 8길 11-16', linkLabel: '지도 보기', linkUrl: '' },
+        { label: '주차', value: 'IGM세계경영연구원 본원 1층 (사전 설문 내 차량 번호를 기재해주세요.)', linkLabel: '', linkUrl: '' }
+      ],
+      suppliesTitle: '준비물',
+      supplies: ['개인 노트북 (사내 보안 상 AI 사용이 가능한지 점검)', '노트북 충전기 및 마우스']
+    };
+  }
   function blankStep() { return { title: '새 단계', shortTitle: '', description: '', image: '', tasks: [blankTask()] }; }
 
   function seedStore() { return migrateStore(JSON.parse(JSON.stringify(SEED))); }
@@ -198,7 +229,8 @@
 
   window.OnboardingAPI = {
     load, save, saveCourse, deleteCourse, buildSteps, normalizeImg, migrateStore, migrateCourse,
-    blankStep, blankTask, readCache, writeCache, seedStore, exportDataJs, isEmptyStore,
+    blankStep, blankTask, blankInfoRow, sampleInfo, normInfo,
+    readCache, writeCache, seedStore, exportDataJs, isEmptyStore,
     isRemote: !!CFG.apiUrl, config: CFG, seed: SEED
   };
 })();
