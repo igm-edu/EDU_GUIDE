@@ -5,845 +5,517 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교육 준비 안내</title>
 
-  <!-- Pretendard Font -->
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 온보딩 데이터/연동 (시드 → 설정 → API 순서로 로드) -->
   <script src="./onboarding-data.js"></script>
   <script src="./onboarding-config.js"></script>
+  <script src="./onboarding-assets.js"></script>
   <script src="./onboarding-api.js"></script>
-  <!-- Alpine.js -->
   <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
-
   <script>
-    tailwind.config = {
-      theme: { extend: { fontFamily: { sans: ['Pretendard', 'ui-sans-serif', 'system-ui'] } } }
-    }
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Pretendard','ui-sans-serif','system-ui'] } } } }
   </script>
 
   <style>
-    [x-cloak] { display: none !important; }
-    body { font-family: 'Pretendard', ui-sans-serif, system-ui; background: #F8FAFC; color: #111827; }
+    [x-cloak]{display:none!important}
+    body{font-family:'Pretendard',ui-sans-serif,system-ui;background:#F7F9FC;color:#111827}
 
-    /* ── Animations ── */
-    @keyframes fadeUp   { from { opacity:0; transform:translateY(18px) } to { opacity:1; transform:translateY(0) } }
-    @keyframes scaleIn  { from { opacity:0; transform:scale(.5) }         to { opacity:1; transform:scale(1) } }
-    @keyframes drawCheck{ from { stroke-dashoffset:60 }                    to { stroke-dashoffset:0 } }
-    @keyframes pulseRing{
-      0%   { box-shadow: 0 0 0 0   rgba(37,99,235,.35) }
-      70%  { box-shadow: 0 0 0 16px rgba(37,99,235,0)  }
-      100% { box-shadow: 0 0 0 0   rgba(37,99,235,0)   }
-    }
-    .anim-fade-up   { animation: fadeUp  .5s ease both }
-    .anim-scale-in  { animation: scaleIn .55s cubic-bezier(.34,1.56,.64,1) both }
-    .anim-pulse-ring{ animation: pulseRing 1.6s ease .7s }
-    .anim-check     { stroke-dasharray:60; stroke-dashoffset:60; animation: drawCheck .45s ease .5s both }
-    .d1 { animation-delay:.08s } .d2 { animation-delay:.16s }
-    .d3 { animation-delay:.24s } .d4 { animation-delay:.32s }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes scaleIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+    @keyframes drawCheck{from{stroke-dashoffset:60}to{stroke-dashoffset:0}}
+    .fu{animation:fadeUp .5s ease both}
+    .d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}.d4{animation-delay:.24s}
+    .anim-scale-in{animation:scaleIn .55s cubic-bezier(.34,1.56,.64,1) both}
+    .anim-check{stroke-dasharray:60;stroke-dashoffset:60;animation:drawCheck .45s ease .45s both}
 
-    /* ── Base components ── */
-    .card { background:#fff; border:1.5px solid #E5E7EB; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.04) }
+    .card{background:#fff;border:1px solid #E8EDF5;border-radius:18px;box-shadow:0 2px 14px rgba(23,43,77,.04)}
+    .soft{background:#F4F7FD;border:1px solid #E8EDF5;border-radius:14px}
 
-    .btn-primary {
-      background:#2563EB; color:#fff; padding:13px 26px; border-radius:12px;
-      font-weight:700; font-size:15px; border:none; cursor:pointer;
-      display:inline-flex; align-items:center; gap:8px;
-      box-shadow:0 4px 14px rgba(37,99,235,.28);
-      transition: background .2s, transform .15s, box-shadow .2s;
-      text-decoration:none;
-    }
-    .btn-primary:hover   { background:#1D4ED8; transform:translateY(-1px); box-shadow:0 6px 20px rgba(37,99,235,.38) }
-    .btn-primary:active  { transform:translateY(0) }
-    .btn-primary:disabled{ background:#D1D5DB; color:#9CA3AF; cursor:not-allowed; transform:none; box-shadow:none }
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14px;
+         border-radius:12px;padding:12px 22px;cursor:pointer;text-decoration:none;transition:all .18s;border:1px solid transparent}
+    .btn-primary{background:#2563EB;color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.26)}
+    .btn-primary:hover{background:#1D4ED8;transform:translateY(-1px)}
+    .btn-primary:disabled{background:#D8DFEA;color:#9AA6B8;box-shadow:none;transform:none;cursor:not-allowed}
+    .btn-outline{background:#fff;color:#1D4ED8;border-color:#CBDCF8}
+    .btn-outline:hover{background:#F0F6FF;border-color:#93C5FD}
+    .btn-ghost{background:transparent;color:#64748B;padding:8px 12px;font-weight:600}
+    .btn-ghost:hover{color:#1D4ED8;background:#F0F6FF}
 
-    .btn-outline {
-      background:transparent; color:#374151; padding:13px 26px; border-radius:12px;
-      font-weight:700; font-size:15px; border:1.5px solid #E5E7EB; cursor:pointer;
-      display:inline-flex; align-items:center; gap:8px; text-decoration:none;
-      transition: border-color .2s, color .2s, background .2s;
-    }
-    .btn-outline:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF }
+    .ic{width:38px;height:38px;border-radius:11px;background:#EAF1FE;color:#2563EB;
+        display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .rowic{width:26px;height:26px;border-radius:8px;color:#7C93B5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
-    .btn-ghost {
-      background:transparent; color:#6B7280; padding:8px 12px; border-radius:8px;
-      font-weight:600; font-size:14px; border:none; cursor:pointer;
-      display:inline-flex; align-items:center; gap:5px;
-      transition: background .15s, color .15s;
-    }
-    .btn-ghost:hover { background:#F3F4F6; color:#111827 }
-
-    /* ── Step tracker ── */
-    .tracker-circle {
-      width:32px; height:32px; border-radius:50%; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center;
-      font-size:13px; font-weight:700; transition: all .3s;
-    }
-    .tc-done    { background:#2563EB; color:#fff }
-    .tc-current { background:#2563EB; color:#fff }
-    .tc-future  { background:#F3F4F6; color:#9CA3AF; border:2px solid #E5E7EB }
-    .tracker-line { height:2px; width:56px; transition:background .3s; margin-bottom:20px; flex-shrink:0 }
-    .tl-done   { background:#2563EB }
-    .tl-future { background:#E5E7EB }
-
-    /* ── Dashboard step card ── */
-    .step-card {
-      background:#fff; border:1.5px solid #E5E7EB; border-radius:16px;
-      padding:20px 24px; cursor:pointer;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .step-card:hover { border-color:#93C5FD; box-shadow:0 4px 20px rgba(37,99,235,.09) }
-    .step-card.done  { border-color:#6EE7B7; background:#F0FDF4 }
-
-    /* ── Preview card ── */
-    .preview-card {
-      background:#fff; border:1.5px solid #E5E7EB; border-radius:14px;
-      padding:16px 20px; cursor:pointer; text-decoration:none;
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .preview-card:hover { border-color:#93C5FD; box-shadow:0 4px 16px rgba(37,99,235,.08) }
-
-    /* ── Task item ── */
-    .task-item {
-      border:1.5px solid #E5E7EB; border-radius:12px; padding:18px 20px;
-      transition: border-color .2s, background .2s;
-    }
-    .task-item.t-active  { border-color:#93C5FD; background:#EFF6FF }
-    .task-item.t-checked { border-color:#6EE7B7; background:#F0FDF4 }
-    .task-item.t-locked  { opacity:.45 }
-
-    /* ── Custom checkbox ── */
-    .cbox {
-      width:22px; height:22px; border:2px solid #D1D5DB; border-radius:6px;
-      display:flex; align-items:center; justify-content:center; flex-shrink:0;
-      cursor:pointer; transition: all .2s;
-    }
-    .cbox.cbox-on { background:#2563EB; border-color:#2563EB }
-
-    /* ── Progress bar ── */
-    .prog-fill {
-      height:100%; border-radius:9999px;
-      background:linear-gradient(90deg, #2563EB, #60A5FA);
-      transition: width .6s cubic-bezier(.4,0,.2,1);
-    }
+    .stepcard{background:#fff;border:1px solid #E8EDF5;border-radius:18px;box-shadow:0 2px 14px rgba(23,43,77,.04);
+              display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s}
+    .stepcard.done{border-color:#A7E3C8;background:#FAFFFC}
+    .taskrow{border:1px solid #EDF1F7;border-radius:12px;padding:12px 13px;transition:all .18s;background:#fff}
+    .taskrow.active{border-color:#BBD5FA;background:#F7FAFF}
+    .taskrow.checked{border-color:#B6E7CF;background:#F6FDF9}
+    .taskrow.locked{opacity:.5}
+    .cbox{width:22px;height:22px;border:2px solid #D3DCE8;border-radius:7px;display:flex;align-items:center;
+          justify-content:center;flex-shrink:0;cursor:pointer;transition:all .18s;background:#fff}
+    .cbox.on{background:#2563EB;border-color:#2563EB}
+    .prog{height:100%;border-radius:9999px;background:linear-gradient(90deg,#2563EB,#60A5FA);transition:width .6s cubic-bezier(.4,0,.2,1)}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:#EAF1FE;color:#1D4ED8;font-size:12px;
+           font-weight:700;padding:5px 12px;border-radius:8px}
+    .note{display:flex;gap:9px;align-items:flex-start;background:#F4F7FD;border:1px solid #E4EBF6;
+          border-radius:12px;padding:12px 14px;font-size:13px;color:#5A6B85;line-height:1.6}
+    #kakaomap{width:100%;height:190px;border-radius:12px;overflow:hidden;background:#EEF2F8}
   </style>
 </head>
 
 <body>
 <div x-data="app()" x-init="init()" x-cloak class="min-h-screen">
 
-  <!-- ════════════════════════════════════════
-       HEADER
-  ════════════════════════════════════════ -->
-  <header class="bg-white border-b border-gray-200 fixed top-0 w-full z-50">
-    <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+  <!-- HEADER -->
+  <header class="bg-white/85 backdrop-blur border-b border-[#E8EDF5] fixed top-0 w-full z-50">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
       <button @click="navigate('landing')" class="flex items-center">
         <img src="./igm-logo.png" alt="IGM 세계경영연구원" class="h-8">
       </button>
-      <nav class="flex items-center gap-5">
-        <a :href="CONFIG.previewUrl || '#'" :target="CONFIG.previewUrl ? '_blank' : '_self'" rel="noopener"
-           class="text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1"
-           :class="{ 'pointer-events-none !text-gray-300': !CONFIG.previewUrl }">
-          과정 교안 미리 보기
-          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        </a>
-        <a :href="CONFIG.autoUrl || '#'" :target="CONFIG.autoUrl ? '_blank' : '_self'" rel="noopener"
-           class="text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1"
-           :class="{ 'pointer-events-none !text-gray-300': !CONFIG.autoUrl }">
-          자동화 미리 보기
-          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        </a>
+      <nav class="flex items-center gap-1">
+        <button @click="navigate('landing')" class="btn btn-ghost text-sm">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+          교육 안내 홈으로
+        </button>
+        <button @click="showFaq = true" class="btn btn-ghost text-sm">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a3 3 0 0 1 5.6 1c0 2-3 2.7-3 2.7"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          도움이 필요하신가요?
+        </button>
       </nav>
     </div>
   </header>
 
-  <!-- ════════════════════════════════════════
-       LOADING
-  ════════════════════════════════════════ -->
-  <main x-show="screen === 'loading'" class="pt-16 min-h-screen flex items-center justify-center">
+  <!-- LOADING -->
+  <main x-show="screen==='loading'" class="pt-16 min-h-screen flex items-center justify-center">
     <div class="flex flex-col items-center gap-3 text-gray-400">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="animate-spin" style="animation-duration:.8s">
-        <circle cx="12" cy="12" r="10" stroke="#E5E7EB" stroke-width="3"/>
-        <path d="M22 12a10 10 0 0 1-10 10" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/>
-      </svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="animate-spin" style="animation-duration:.8s"><circle cx="12" cy="12" r="10" stroke="#E5E7EB" stroke-width="3"/><path d="M22 12a10 10 0 0 1-10 10" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/></svg>
       <span class="text-sm font-medium">불러오는 중…</span>
     </div>
   </main>
 
-  <!-- ════════════════════════════════════════
-       LANDING
-  ════════════════════════════════════════ -->
-  <main x-show="screen === 'landing'"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        class="pt-16 min-h-screen flex items-center">
-    <div class="max-w-4xl mx-auto px-6 py-20 w-full">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+  <!-- ═══════════ LANDING ═══════════ -->
+  <main x-show="screen==='landing'" class="pt-16 min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-10">
+      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] gap-5 items-start">
 
-        <!-- Left -->
-        <div>
-          <div class="anim-fade-up d1 inline-flex items-center gap-2 bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1.5 rounded-full mb-6 tracking-widest uppercase">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            교육 입과 전 준비
-          </div>
-          <h1 class="anim-fade-up d2 text-[2.6rem] font-extrabold text-gray-900 leading-tight mb-5">
-            <span x-text="CONFIG.courseName"></span> 과정에<br>오신 것을 <span class="text-blue-600">환영합니다!</span>
-          </h1>
-          <p class="anim-fade-up d3 text-gray-500 text-[15px] leading-relaxed mb-10">
-            이 과정을 시작하기 전,<br>원활한 학습을 위해 준비 사항을 확인해주세요.
-          </p>
-          <button @click="navigate('dashboard')" class="anim-fade-up d4 btn-primary">
-            준비 사항 확인하기
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
-        </div>
-
-        <!-- Right: Illustration -->
-        <div class="anim-fade-up d3 flex justify-center">
-          <svg width="320" height="280" viewBox="0 0 320 280" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Card background -->
-            <rect x="10" y="10" width="300" height="260" rx="20" fill="#EFF6FF"/>
-            <!-- Header bar -->
-            <rect x="10" y="10" width="300" height="54" rx="20" fill="#2563EB"/>
-            <rect x="10" y="46" width="300" height="18" fill="#2563EB"/>
-            <!-- Dots -->
-            <circle cx="36" cy="37" r="5" fill="rgba(255,255,255,.45)"/>
-            <circle cx="52" cy="37" r="5" fill="rgba(255,255,255,.45)"/>
-            <circle cx="68" cy="37" r="5" fill="rgba(255,255,255,.45)"/>
-            <!-- Step circles in header -->
-            <circle cx="144" cy="37" r="9" fill="white"/>
-            <text x="144" y="41" text-anchor="middle" fill="#2563EB" font-size="10" font-weight="800">1</text>
-            <line x1="158" y1="37" x2="178" y2="37" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-dasharray="3 3"/>
-            <circle cx="190" cy="37" r="9" fill="rgba(255,255,255,.3)"/>
-            <text x="190" y="41" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="10" font-weight="800">2</text>
-            <line x1="204" y1="37" x2="224" y2="37" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-dasharray="3 3"/>
-            <circle cx="236" cy="37" r="9" fill="rgba(255,255,255,.3)"/>
-            <text x="236" y="41" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="10" font-weight="800">3</text>
-            <!-- Checklist item 1 (done) -->
-            <rect x="30" y="80" width="260" height="46" rx="10" fill="white" stroke="#6EE7B7" stroke-width="1.5"/>
-            <rect x="44" y="91" width="20" height="20" rx="5" fill="#10B981"/>
-            <polyline points="49,101 53,105 62,96" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <rect x="74" y="93" width="90" height="7" rx="3.5" fill="#D1FAE5"/>
-            <rect x="74" y="106" width="60" height="6" rx="3" fill="#D1FAE5"/>
-            <!-- Checklist item 2 (done) -->
-            <rect x="30" y="136" width="260" height="46" rx="10" fill="white" stroke="#6EE7B7" stroke-width="1.5"/>
-            <rect x="44" y="147" width="20" height="20" rx="5" fill="#10B981"/>
-            <polyline points="49,157 53,161 62,152" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <rect x="74" y="149" width="110" height="7" rx="3.5" fill="#D1FAE5"/>
-            <rect x="74" y="162" width="72" height="6" rx="3" fill="#D1FAE5"/>
-            <!-- Checklist item 3 (active) -->
-            <rect x="30" y="192" width="260" height="46" rx="10" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5"/>
-            <rect x="44" y="203" width="20" height="20" rx="5" fill="none" stroke="#93C5FD" stroke-width="2"/>
-            <rect x="74" y="205" width="100" height="7" rx="3.5" fill="#BFDBFE"/>
-            <rect x="74" y="218" width="65" height="6" rx="3" fill="#DBEAFE"/>
-            <!-- Avatar -->
-            <circle cx="284" cy="122" r="22" fill="#DBEAFE"/>
-            <circle cx="284" cy="114" r="9" fill="#93C5FD"/>
-            <ellipse cx="284" cy="136" rx="13" ry="9" fill="#93C5FD"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- ── 교육 안내 ── -->
-      <template x-if="hasInfo()">
-        <div class="card p-7 mt-14 anim-fade-up d3">
-          <div class="flex items-center gap-2 mb-5">
-            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
-              <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <h2 class="text-lg font-extrabold text-gray-900" x-text="CONFIG.info.title || '교육 안내'"></h2>
-          </div>
-
-          <!-- 항목 -->
-          <div class="space-y-3.5">
-            <template x-for="(row, ri) in CONFIG.info.rows" :key="ri">
-              <div class="flex gap-3 items-start">
-                <span class="flex-shrink-0 inline-flex items-center justify-center min-w-[54px] bg-gray-100 text-gray-700 text-xs font-bold px-2.5 py-1 rounded-md mt-0.5" x-text="row.label"></span>
-                <div class="flex-1 min-w-0 text-[14px] text-gray-700 leading-relaxed">
-                  <span class="whitespace-pre-line" x-text="row.value"></span>
-                  <template x-if="row.linkUrl">
-                    <a :href="row.linkUrl" target="_blank" rel="noopener"
-                       class="inline-flex items-center gap-1 ml-1.5 align-middle text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md transition-colors">
-                      <span x-text="row.linkLabel || '링크'"></span>
-                      <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    </a>
-                  </template>
-                </div>
+        <!-- 좌: 안내 그룹 -->
+        <div class="card p-6 fu d1 order-2 lg:order-1">
+          <template x-for="(g, gi) in infoGroups()" :key="gi">
+            <div :class="gi > 0 ? 'mt-7 pt-7 border-t border-[#EDF1F7]' : ''">
+              <div class="flex items-center gap-2.5 mb-4">
+                <div class="ic" x-html="icon(g.icon, 19)"></div>
+                <h2 class="text-[17px] font-extrabold text-gray-900" x-text="g.title"></h2>
               </div>
-            </template>
-          </div>
-
-          <!-- 준비물 -->
-          <template x-if="CONFIG.info.supplies && CONFIG.info.supplies.length">
-            <div class="mt-5 pt-5 border-t border-gray-100">
-              <div class="flex gap-3 items-start">
-                <span class="flex-shrink-0 inline-flex items-center justify-center min-w-[54px] bg-gray-100 text-gray-700 text-xs font-bold px-2.5 py-1 rounded-md mt-0.5"
-                      x-text="CONFIG.info.suppliesTitle || '준비물'"></span>
-                <ul class="flex-1 min-w-0 space-y-2">
-                  <template x-for="(sup, si) in CONFIG.info.supplies" :key="si">
-                    <li class="flex gap-2 items-start text-[14px] text-gray-700 leading-relaxed">
-                      <span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-50 text-blue-600 text-[11px] font-bold flex items-center justify-center mt-0.5" x-text="si+1"></span>
-                      <span class="whitespace-pre-line" x-text="sup"></span>
-                    </li>
-                  </template>
-                </ul>
+              <div class="space-y-3.5">
+                <template x-for="(r, ri) in g.rows" :key="ri">
+                  <div class="flex gap-2.5 items-start">
+                    <div class="rowic mt-0.5" x-html="icon(r.icon || 'check', 16)"></div>
+                    <div class="flex-1 min-w-0 flex flex-wrap gap-x-3 gap-y-0.5">
+                      <span x-show="r.label" class="text-[13px] font-bold text-gray-800 w-[68px] flex-shrink-0" x-text="r.label"></span>
+                      <span class="text-[13px] text-gray-600 leading-relaxed flex-1 min-w-[120px] whitespace-pre-line" x-text="r.value"></span>
+                      <template x-if="r.linkUrl">
+                        <a :href="r.linkUrl" target="_blank" rel="noopener" class="text-[12px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md transition-colors self-start">
+                          <span x-text="r.linkLabel || '링크'"></span> ↗
+                        </a>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+              <div x-show="g.note" class="note mt-4">
+                <svg width="15" height="15" fill="none" stroke="#8CA3C4" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span x-text="g.note"></span>
               </div>
             </div>
           </template>
+          <div x-show="infoGroups().length===0" class="text-center text-sm text-gray-400 py-8">교육 안내가 아직 등록되지 않았습니다.</div>
         </div>
-      </template>
 
-      <!-- Dot pagination -->
-      <div class="flex justify-center gap-2 mt-16">
-        <div class="w-6 h-1.5 bg-blue-600 rounded-full"></div>
-        <div class="w-1.5 h-1.5 bg-gray-300 rounded-full"></div>
-        <div class="w-1.5 h-1.5 bg-gray-300 rounded-full"></div>
-        <div class="w-1.5 h-1.5 bg-gray-300 rounded-full"></div>
-      </div>
-    </div>
-  </main>
+        <!-- 우: HERO + 오시는 길 -->
+        <div class="space-y-5 order-1 lg:order-2">
 
-  <!-- ════════════════════════════════════════
-       DASHBOARD
-  ════════════════════════════════════════ -->
-  <main x-show="screen === 'dashboard'"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-2"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        class="pt-16 min-h-screen">
-    <div class="max-w-2xl mx-auto px-6 py-12">
+          <!-- HERO -->
+          <div class="card p-8 lg:p-10 fu overflow-hidden relative">
+            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-6 items-center">
+              <div class="min-w-0">
+                <div x-show="hero.badge" class="badge mb-5" x-text="hero.badge"></div>
+                <h1 class="text-[2rem] lg:text-[2.35rem] font-extrabold text-gray-900 leading-[1.28] mb-4">
+                  <template x-for="(ln, li) in hero.titleLines" :key="li">
+                    <span class="block" :class="(hero.highlightLast && li===hero.titleLines.length-1) ? 'text-blue-600' : ''" x-text="ln"></span>
+                  </template>
+                </h1>
+                <p class="text-[14px] text-gray-500 leading-relaxed whitespace-pre-line mb-7" x-text="hero.description"></p>
+                <button @click="navigate('dashboard')" class="btn btn-primary">
+                  사전 준비 사항 확인하기
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+              </div>
+              <div class="hidden sm:block w-[240px] flex-shrink-0" x-html="illust(hero.illust)"></div>
+            </div>
+          </div>
 
-      <h1 class="text-[1.6rem] font-extrabold text-gray-900 text-center mb-1">
-        과정 입과 전 준비 사항을 알아볼까요?
-      </h1>
-      <p class="text-center text-sm text-gray-400 mb-2">
-        <span class="font-bold text-blue-600" x-text="completedCount()"></span>/<span x-text="STEPS.length"></span> 단계 완료
-      </p>
+          <!-- 오시는 길 -->
+          <template x-if="dir.enabled">
+            <div class="card p-6 lg:p-7 fu d2">
+              <h2 class="text-[17px] font-extrabold text-gray-900 mb-5" x-text="dir.title || '오시는 길'"></h2>
 
-      <!-- 진행률 바 -->
-      <div class="max-w-xs mx-auto mb-3">
-        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div class="prog-fill" :style="`width:${STEPS.length ? (completedCount()/STEPS.length)*100 : 0}%`"></div>
+              <div class="flex items-center gap-2.5 mb-4">
+                <div class="ic" x-html="icon('pin', 19)"></div>
+                <div class="min-w-0">
+                  <div class="text-[14px] font-bold text-gray-900" x-text="dir.placeName || '교육 장소'"></div>
+                  <div x-show="dir.placeDetail" class="text-[12px] text-gray-500 mt-0.5" x-text="dir.placeDetail"></div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 지도 -->
+                <div>
+                  <div x-show="mapReady" id="kakaomap"></div>
+                  <template x-if="!mapReady">
+                    <a :href="mapHref()" :target="mapHref()!=='#' ? '_blank' : '_self'" rel="noopener"
+                       class="soft flex flex-col items-center justify-center gap-2 py-9 text-center hover:border-blue-200 transition-colors"
+                       :class="mapHref()==='#' ? 'pointer-events-none' : ''">
+                      <div class="ic" x-html="icon('pin', 19)"></div>
+                      <span class="text-[13px] font-bold text-gray-700" x-text="dir.address || '주소 미등록'"></span>
+                      <span x-show="mapHref()!=='#'" class="text-[12px] font-bold text-blue-600">지도 보기 ↗</span>
+                    </a>
+                  </template>
+                  <a x-show="mapReady && mapHref()!=='#'" :href="mapHref()" target="_blank" rel="noopener"
+                     class="mt-2 inline-flex text-[12px] font-bold text-blue-600 hover:text-blue-800">큰 지도로 보기 ↗</a>
+                </div>
+
+                <!-- 교통편 -->
+                <div class="space-y-2.5">
+                  <template x-for="(t, ti) in dir.transit.filter(x => x.label || x.value)" :key="ti">
+                    <div class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
+                      <div class="rowic mt-0.5" x-html="icon(t.icon || 'subway', 17)"></div>
+                      <div class="min-w-0 flex-1">
+                        <div class="text-[12px] font-bold text-gray-800" x-text="t.label"></div>
+                        <div class="text-[12px] text-gray-500 leading-relaxed whitespace-pre-line" x-text="t.value"></div>
+                      </div>
+                    </div>
+                  </template>
+                  <div x-show="dir.address" class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
+                    <div class="rowic mt-0.5" x-html="icon('pin', 17)"></div>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-[12px] font-bold text-gray-800">주소</div>
+                      <div class="text-[12px] text-gray-500 leading-relaxed" x-text="dir.address"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div x-show="dir.note" class="note mt-4">
+                <svg width="15" height="15" fill="none" stroke="#8CA3C4" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span x-text="dir.note"></span>
+              </div>
+            </div>
+          </template>
+
         </div>
       </div>
-      <p class="text-center text-xs text-gray-300 mb-8 flex items-center justify-center gap-1">
-        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        진행 상황은 자동으로 저장돼요
-      </p>
-
-      <!-- Step Tracker -->
-      <div class="flex items-center justify-center mb-10">
-        <template x-for="(step, i) in STEPS" :key="step.id">
-          <div class="flex items-center">
-            <div class="flex flex-col items-center gap-2">
-              <div class="tracker-circle"
-                   :class="progress[step.id].done ? 'tc-done' : 'tc-future'">
-                <template x-if="progress[step.id].done">
-                  <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                </template>
-                <template x-if="!progress[step.id].done">
-                  <span x-text="step.id"></span>
-                </template>
-              </div>
-              <span class="text-xs text-gray-400 text-center" style="width:68px; line-height:1.3" x-text="step.shortTitle"></span>
-            </div>
-            <template x-if="i < STEPS.length - 1">
-              <div class="tracker-line mx-3" :class="progress[step.id].done ? 'tl-done' : 'tl-future'"></div>
-            </template>
-          </div>
-        </template>
-      </div>
-
-      <!-- Step Cards -->
-      <div class="space-y-3 mb-8">
-        <template x-for="(step, i) in STEPS" :key="step.id">
-          <div class="step-card" :class="{ 'done': progress[step.id].done }" @click="goToStep(step.id)">
-            <div class="flex items-center gap-4">
-              <!-- Icon -->
-              <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors font-extrabold"
-                   :class="progress[step.id].done ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-600'">
-                <template x-if="progress[step.id].done">
-                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                </template>
-                <template x-if="!progress[step.id].done">
-                  <span x-text="step.id"></span>
-                </template>
-              </div>
-              <!-- Text -->
-              <div class="flex-1 min-w-0">
-                <div class="text-xs font-bold text-blue-500 mb-0.5" x-text="'STEP ' + step.id"></div>
-                <div class="font-bold text-gray-900" x-text="step.title"></div>
-                <div class="text-sm text-gray-500 mt-0.5" x-text="step.description"></div>
-              </div>
-              <!-- Status -->
-              <div class="flex-shrink-0">
-                <template x-if="progress[step.id].done">
-                  <span class="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                    완료
-                  </span>
-                </template>
-                <template x-if="!progress[step.id].done">
-                  <span class="flex items-center gap-1 text-sm font-semibold text-blue-600">
-                    시작하기
-                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-                  </span>
-                </template>
-              </div>
-            </div>
-          </div>
-        </template>
-      </div>
-
-      <!-- Preview Cards -->
-      <div class="grid grid-cols-2 gap-3 mb-6">
-        <a :href="CONFIG.previewUrl || '#'" :target="CONFIG.previewUrl ? '_blank' : '_self'" rel="noopener"
-           class="preview-card">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            </div>
-            <div>
-              <div class="text-sm font-bold text-gray-900">과정 교안 미리 보기</div>
-              <div class="text-xs text-gray-400 mt-0.5">커리큘럼 확인</div>
-            </div>
-          </div>
-          <svg width="15" height="15" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </a>
-        <a :href="CONFIG.autoUrl || '#'" :target="CONFIG.autoUrl ? '_blank' : '_self'" rel="noopener"
-           class="preview-card">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            </div>
-            <div>
-              <div class="text-sm font-bold text-gray-900">클로드 자동화 미리 보기</div>
-              <div class="text-xs text-gray-400 mt-0.5">실습 예시 확인</div>
-            </div>
-          </div>
-          <svg width="15" height="15" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </a>
-      </div>
-
-      <!-- FAQ -->
-      <p class="text-center text-sm text-gray-400 flex items-center justify-center gap-1.5">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        도움이 필요하신가요?
-        <button @click="showFaq = true" class="text-blue-500 hover:text-blue-700 font-medium transition-colors">자주 묻는 질문 보기 →</button>
-      </p>
-
     </div>
   </main>
 
-  <!-- ════════════════════════════════════════
-       STEP PAGES (공유 템플릿)
-  ════════════════════════════════════════ -->
-  <main x-show="screen.startsWith('step-')"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-2"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        class="pt-16 min-h-screen">
-    <div class="max-w-2xl mx-auto px-6 py-10">
+  <!-- ═══════════ DASHBOARD ═══════════ -->
+  <main x-show="screen==='dashboard'" class="pt-16 min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-10">
 
-      <!-- Back -->
-      <button @click="prevStep()" class="btn-ghost mb-8 -ml-1">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        이전
-      </button>
+      <div class="flex items-end justify-between gap-6 flex-wrap mb-7 fu">
+        <div>
+          <h1 class="text-[2rem] font-extrabold text-gray-900 mb-1.5">사전 준비 사항</h1>
+          <p class="text-[14px] text-gray-500">원활한 학습 참여를 위해 아래 항목을 미리 확인해 주세요.</p>
+        </div>
+        <div class="min-w-[190px]">
+          <div class="flex items-center justify-between text-[12px] mb-1.5">
+            <span class="text-gray-400 font-semibold">진행률</span>
+            <span class="font-extrabold text-blue-600"><span x-text="completedCount()"></span>/<span x-text="STEPS.length"></span></span>
+          </div>
+          <div class="w-full h-2 bg-[#E9EEF6] rounded-full overflow-hidden">
+            <div class="prog" :style="`width:${STEPS.length ? (completedCount()/STEPS.length)*100 : 0}%`"></div>
+          </div>
+        </div>
+      </div>
 
-      <!-- Step Tracker -->
-      <div class="flex items-center justify-center mb-10">
-        <template x-for="(step, i) in STEPS" :key="step.id">
-          <div class="flex items-center">
-            <div class="flex flex-col items-center gap-2">
-              <div class="tracker-circle"
-                   :class="progress[step.id].done ? 'tc-done' : (currentStepId === step.id ? 'tc-current' : 'tc-future')">
-                <template x-if="progress[step.id].done">
-                  <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                </template>
-                <template x-if="!progress[step.id].done">
-                  <span x-text="step.id"></span>
-                </template>
-              </div>
-              <span class="text-xs text-center" style="width:68px; line-height:1.3"
-                    :class="currentStepId === step.id ? 'text-blue-600 font-bold' : 'text-gray-400'"
-                    x-text="step.shortTitle"></span>
+      <!-- 단계 카드 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <template x-for="(step, si) in STEPS" :key="step.id">
+          <div class="stepcard p-6 fu" :class="{'done': progress[step.id]?.done}" :style="`animation-delay:${si*.07}s`">
+
+            <div class="h-[104px] flex items-center justify-center mb-4" x-html="illust(step.illust)"></div>
+
+            <div class="flex items-center gap-2 mb-2.5">
+              <span class="badge" x-text="'준비사항 ' + step.id"></span>
+              <span x-show="progress[step.id]?.done" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>완료
+              </span>
             </div>
-            <template x-if="i < STEPS.length - 1">
-              <div class="tracker-line mx-3" :class="progress[step.id].done ? 'tl-done' : 'tl-future'"></div>
+
+            <h2 class="text-[21px] font-extrabold text-gray-900 mb-2" x-text="step.title"></h2>
+            <p class="text-[13px] text-gray-500 leading-relaxed whitespace-pre-line mb-4" x-text="step.description"></p>
+
+            <template x-if="step.image">
+              <img :src="step.image" :alt="step.title" class="w-full rounded-xl border border-[#EDF1F7] mb-4" onerror="this.style.display='none'">
             </template>
-          </div>
-        </template>
-      </div>
 
-      <!-- Title area -->
-      <div class="mb-8">
-        <p class="text-xs font-black text-blue-600 tracking-[.18em] uppercase mb-1.5"
-           x-text="'STEP ' + currentStepId"></p>
-        <h1 class="text-2xl font-extrabold text-gray-900 mb-2"
-            x-text="currentStep().title"></h1>
-        <p class="text-sm text-gray-500 leading-relaxed whitespace-pre-line"
-           x-text="currentStep().description"></p>
-      </div>
+            <div class="border-t border-dashed border-[#E4EAF3] pt-4 space-y-2.5 flex-1">
+              <template x-for="(task, ti) in step.tasks" :key="ti">
+                <div class="taskrow" :class="{
+                      'active': canCheck(step.id,ti) && !progress[step.id]?.checks[ti],
+                      'checked': progress[step.id]?.checks[ti],
+                      'locked': !canCheck(step.id,ti)}">
+                  <div class="flex gap-2.5 items-start">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0 transition-colors"
+                         :class="progress[step.id]?.checks[ti] ? 'bg-blue-600 text-white' : (canCheck(step.id,ti) ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400')">
+                      <template x-if="progress[step.id]?.checks[ti]">
+                        <svg width="12" height="12" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                      </template>
+                      <template x-if="!progress[step.id]?.checks[ti]"><span x-text="ti+1"></span></template>
+                    </div>
 
-      <!-- 단계 이미지 (설정된 경우) -->
-      <template x-if="currentStep().image">
-        <img :src="currentStep().image" :alt="currentStep().title"
-             class="w-full rounded-2xl border border-gray-200 mb-8 object-cover anim-fade-up"
-             onerror="this.style.display='none'">
-      </template>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-[13px] font-bold text-gray-900 mb-0.5" :class="progress[step.id]?.checks[ti] ? 'line-through text-gray-400' : ''" x-text="task.title"></p>
+                      <p class="text-[12px] text-gray-500 leading-relaxed whitespace-pre-line" x-text="task.desc"></p>
+                      <template x-if="task.link?.enabled && task.link?.url && canCheck(step.id,ti)">
+                        <a :href="task.link.url" target="_blank" rel="noopener"
+                           class="inline-flex items-center gap-1 mt-2 text-[11px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md transition-colors">
+                          <span x-text="task.link.label || '링크 열기'"></span> ↗
+                        </a>
+                      </template>
+                    </div>
 
-      <!-- Task Items -->
-      <div class="space-y-3 mb-10">
-        <template x-for="(task, idx) in currentStep().tasks" :key="idx">
-          <div class="task-item"
-               :class="{
-                 't-active' : canCheckTask(currentStepId, idx) && !progress[currentStepId].checks[idx],
-                 't-checked': progress[currentStepId].checks[idx],
-                 't-locked' : !canCheckTask(currentStepId, idx)
-               }">
-            <div class="flex items-start gap-3">
-
-              <!-- Number / check badge -->
-              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5 transition-colors"
-                   :class="progress[currentStepId].checks[idx]
-                     ? 'bg-blue-600 text-white'
-                     : (canCheckTask(currentStepId, idx) ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400')">
-                <template x-if="progress[currentStepId].checks[idx]">
-                  <svg width="12" height="12" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                </template>
-                <template x-if="!progress[currentStepId].checks[idx]">
-                  <span x-text="idx + 1"></span>
-                </template>
-              </div>
-
-              <!-- Content -->
-              <div class="flex-1 min-w-0">
-                <p class="font-bold text-gray-900 text-[14px] mb-1"
-                   :class="{ 'line-through text-gray-400': progress[currentStepId].checks[idx] }"
-                   x-text="task.title"></p>
-                <p class="text-xs text-gray-500 leading-relaxed whitespace-pre-line" x-text="task.desc"></p>
-
-                <!-- External link button -->
-                <template x-if="task.link && task.link.enabled && task.link.url && canCheckTask(currentStepId, idx)">
-                  <a :href="task.link.url" target="_blank" rel="noopener"
-                     class="inline-flex items-center gap-1.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
-                    <span x-text="task.link.label || '링크 열기'"></span>
-                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  </a>
-                </template>
-              </div>
-
-              <!-- Lock / Checkbox -->
-              <div class="flex-shrink-0 mt-0.5">
-                <template x-if="!canCheckTask(currentStepId, idx)">
-                  <svg width="18" height="18" fill="none" stroke="#D1D5DB" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                </template>
-                <template x-if="canCheckTask(currentStepId, idx)">
-                  <button @click="toggleCheck(currentStepId, idx)"
-                          class="cbox" :class="{ 'cbox-on': progress[currentStepId].checks[idx] }">
-                    <template x-if="progress[currentStepId].checks[idx]">
-                      <svg width="12" height="12" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                    </template>
-                  </button>
-                </template>
-              </div>
-
+                    <div class="flex-shrink-0 mt-0.5">
+                      <template x-if="!canCheck(step.id,ti)">
+                        <svg width="17" height="17" fill="none" stroke="#D3DCE8" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      </template>
+                      <template x-if="canCheck(step.id,ti)">
+                        <button @click="toggle(step.id,ti)" class="cbox" :class="{'on': progress[step.id]?.checks[ti]}" :aria-label="task.title + ' 완료 표시'">
+                          <template x-if="progress[step.id]?.checks[ti]">
+                            <svg width="12" height="12" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                          </template>
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </template>
             </div>
+
+            <a x-show="step.cta?.url" :href="step.cta.url" target="_blank" rel="noopener" class="btn btn-outline w-full mt-4">
+              <span x-text="step.cta.label || '바로가기'"></span>
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
           </div>
         </template>
       </div>
 
-      <!-- Next button -->
-      <div class="flex justify-end">
-        <button @click="nextStep()"
-                :disabled="!canProceedStep(currentStepId)"
-                class="btn-primary">
-          <span x-text="currentStepId < STEPS.length ? '다음 단계' : '준비 완료 확인'"></span>
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
+      <!-- 하단 안내 -->
+      <div class="card mt-6 px-6 py-5 flex items-center justify-between gap-4 flex-wrap fu d3">
+        <div class="flex items-start gap-2.5 min-w-0">
+          <svg width="17" height="17" fill="none" stroke="#8CA3C4" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <p class="text-[13px] text-gray-500 leading-relaxed">
+            모든 준비가 완료되면, 교육 시작 전에 다시 한 번 확인해 주세요. 진행 상황은 자동으로 저장됩니다.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <button @click="showFaq = true" class="btn btn-outline !py-2.5">자주 묻는 질문 보기 ›</button>
+          <button @click="allDone() ? navigate('complete') : null" :disabled="!allDone()" class="btn btn-primary !py-2.5">
+            준비 완료 확인
+          </button>
+        </div>
       </div>
     </div>
   </main>
 
-  <!-- ════════════════════════════════════════
-       COMPLETION
-  ════════════════════════════════════════ -->
-  <main x-show="screen === 'complete'"
-        x-transition:enter="transition ease-out duration-400"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        class="pt-16 min-h-screen flex items-center justify-center">
+  <!-- ═══════════ COMPLETE ═══════════ -->
+  <main x-show="screen==='complete'" class="pt-16 min-h-screen flex items-center justify-center">
     <div class="max-w-lg mx-auto px-6 py-20 text-center w-full">
-
-      <!-- Success icon -->
       <div class="flex justify-center mb-8">
-        <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center anim-scale-in anim-pulse-ring">
+        <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center anim-scale-in">
           <svg width="36" height="36" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24">
             <polyline points="20 6 9 17 4 12" class="anim-check"></polyline>
           </svg>
         </div>
       </div>
-
       <h1 class="text-3xl font-extrabold text-gray-900 mb-3">준비 완료!</h1>
-      <p class="text-gray-500 text-[15px] leading-relaxed mb-10">
-        입과 전 준비를 모두 마쳤습니다.<br>
-        교육 당일 뵙겠습니다. 아래에서 과정 자료를 미리 살펴보세요.
+      <p class="text-gray-500 text-[15px] leading-relaxed mb-9">
+        입과 전 준비를 모두 마쳤습니다.<br>교육 당일 뵙겠습니다.
       </p>
 
-      <!-- 과정 시작 CTA (startUrl 설정 시에만 노출) -->
-      <template x-if="CONFIG.startUrl">
-        <a :href="CONFIG.startUrl" target="_blank" rel="noopener"
-           class="btn-primary w-full justify-center !py-4 !text-base mb-4">
+      <div class="flex flex-col gap-3 mb-7">
+        <a x-show="CONFIG.startUrl" :href="CONFIG.startUrl" target="_blank" rel="noopener" class="btn btn-primary w-full !py-4 !text-base">
           과정 시작하기
           <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
-      </template>
-
-      <!-- 3개 메인 버튼 -->
-      <div class="flex flex-col gap-3 mb-8">
-        <a :href="CONFIG.previewUrl || '#'" :target="CONFIG.previewUrl ? '_blank' : '_self'" rel="noopener"
-           class="flex items-center gap-4 bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-2xl px-6 py-5 transition-all group text-left">
-          <div class="w-11 h-11 bg-blue-50 group-hover:bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors text-blue-600">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="font-bold text-gray-900">과정 교안 미리보기</div>
-            <div class="text-sm text-gray-400 mt-0.5">수업 커리큘럼을 미리 확인하세요</div>
-          </div>
-          <svg width="16" height="16" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 group-hover:stroke-blue-400 transition-colors"><polyline points="9 18 15 12 9 6"/></svg>
-        </a>
-
-        <a :href="CONFIG.autoUrl || '#'" :target="CONFIG.autoUrl ? '_blank' : '_self'" rel="noopener"
-           class="flex items-center gap-4 bg-white border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 rounded-2xl px-6 py-5 transition-all group text-left">
-          <div class="w-11 h-11 bg-purple-50 group-hover:bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors text-purple-600">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="font-bold text-gray-900">클로드 자동화 미리보기</div>
-            <div class="text-sm text-gray-400 mt-0.5">실습 예시를 미리 살펴보세요</div>
-          </div>
-          <svg width="16" height="16" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 group-hover:stroke-purple-400 transition-colors"><polyline points="9 18 15 12 9 6"/></svg>
-        </a>
-
-        <button @click="showFaq = true"
-                class="flex items-center gap-4 bg-white border-2 border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 rounded-2xl px-6 py-5 transition-all group text-left w-full">
-          <div class="w-11 h-11 bg-emerald-50 group-hover:bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors text-emerald-600">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="font-bold text-gray-900">자주 묻는 질문</div>
-            <div class="text-sm text-gray-400 mt-0.5">준비 과정에서 궁금한 점을 확인하세요</div>
-          </div>
-          <svg width="16" height="16" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 group-hover:stroke-emerald-400 transition-colors"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
+        <a x-show="CONFIG.previewUrl" :href="CONFIG.previewUrl" target="_blank" rel="noopener" class="btn btn-outline w-full !py-3.5">과정 교안 미리보기 ↗</a>
+        <a x-show="CONFIG.autoUrl" :href="CONFIG.autoUrl" target="_blank" rel="noopener" class="btn btn-outline w-full !py-3.5">클로드 자동화 미리보기 ↗</a>
       </div>
-
-      <!-- 보조 버튼 -->
-      <button @click="navigate('dashboard')" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-        준비 사항 다시 확인하기
-      </button>
+      <button @click="navigate('dashboard')" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">준비 사항 다시 확인하기</button>
     </div>
   </main>
 
-  <!-- ════════════════════════════════════════
-       NOT FOUND — 잘못된/없는 과정 코드
-  ════════════════════════════════════════ -->
-  <main x-show="screen === 'notfound'" class="pt-16 min-h-screen flex items-center justify-center">
+  <!-- NOT FOUND -->
+  <main x-show="screen==='notfound'" class="pt-16 min-h-screen flex items-center justify-center">
     <div class="max-w-md mx-auto px-6 py-20 text-center">
       <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 mx-auto mb-6">
         <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       </div>
       <h1 class="text-xl font-extrabold text-gray-900 mb-2">과정을 찾을 수 없어요</h1>
-      <p class="text-sm text-gray-500 leading-relaxed mb-8">
-        주소의 과정 코드가 올바른지 확인해주세요.<br>
-        문제가 계속되면 교육 담당자에게 문의해주세요.
-      </p>
-      <a :href="hubUrl" class="btn-outline">운영자 허브로 이동</a>
+      <p class="text-sm text-gray-500 leading-relaxed mb-8">주소의 과정 코드가 올바른지 확인해주세요.<br>문제가 계속되면 교육 담당자에게 문의해주세요.</p>
+      <a href="index.html" class="btn btn-outline">운영자 허브로 이동</a>
     </div>
   </main>
 
-  <!-- ════════════════════════════════════════
-       FAQ 모달
-  ════════════════════════════════════════ -->
-  <div x-show="showFaq"
-       x-transition:enter="transition ease-out duration-200"
-       x-transition:enter-start="opacity-0"
-       x-transition:enter-end="opacity-100"
-       x-transition:leave="transition ease-in duration-150"
-       x-transition:leave-start="opacity-100"
-       x-transition:leave-end="opacity-0"
-       class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4"
-       style="display:none">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showFaq = false"></div>
-    <!-- Panel -->
-    <div class="relative bg-white rounded-2xl w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl"
-         x-transition:enter="transition ease-out duration-250"
-         x-transition:enter-start="opacity-0 translate-y-6"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 translate-y-0"
-         x-transition:leave-end="opacity-0 translate-y-4">
-      <!-- Header -->
+  <!-- FAQ 모달 -->
+  <div x-show="showFaq" x-transition class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4" style="display:none">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showFaq=false"></div>
+    <div class="relative bg-white rounded-2xl w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
       <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
         <div>
           <h2 class="text-lg font-extrabold text-gray-900">자주 묻는 질문</h2>
           <p class="text-xs text-gray-400 mt-0.5">교육 준비 중 궁금한 점을 확인하세요</p>
         </div>
-        <button @click="showFaq = false"
-                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-700">
+        <button @click="showFaq=false" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700" aria-label="닫기">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <!-- FAQ 목록 (스크롤) -->
-      <div class="overflow-y-auto px-6 py-4 space-y-2" x-data="{ open: null }">
-        <template x-for="(faq, i) in FAQ_ITEMS" :key="i">
+      <div class="overflow-y-auto px-6 py-4 space-y-2" x-data="{open:null}">
+        <template x-for="(faq,i) in FAQ_ITEMS" :key="i">
           <div class="border border-gray-100 rounded-xl overflow-hidden">
-            <button @click="open = (open === i ? null : i)"
-                    class="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-gray-50 transition-colors">
+            <button @click="open = (open===i ? null : i)" class="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-gray-50">
               <span class="font-semibold text-gray-900 text-sm pr-4" x-text="faq.q"></span>
-              <svg width="16" height="16" fill="none" stroke="#6B7280" stroke-width="2.5" viewBox="0 0 24 24"
-                   class="flex-shrink-0 transition-transform duration-200"
-                   :class="open === i ? 'rotate-180' : ''">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
+              <svg width="16" height="16" fill="none" stroke="#6B7280" stroke-width="2.5" viewBox="0 0 24 24" class="flex-shrink-0 transition-transform" :class="open===i?'rotate-180':''"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
-            <div x-show="open === i"
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 -translate-y-1"
-                 x-transition:enter-end="opacity-100 translate-y-0"
-                 class="px-4 pb-4">
+            <div x-show="open===i" class="px-4 pb-4">
               <p class="text-sm text-gray-500 leading-relaxed whitespace-pre-line" x-text="faq.a"></p>
             </div>
           </div>
         </template>
+        <div x-show="FAQ_ITEMS.length===0" class="text-center text-sm text-gray-400 py-6">등록된 질문이 없습니다.</div>
       </div>
     </div>
   </div>
 
-</div><!-- /app -->
+</div>
 
-<!-- ════════════════════════════════════════
-     SCRIPT
-════════════════════════════════════════ -->
 <script>
-/* ============================================================
-   과정 온보딩 앱 — 데이터는 OnboardingAPI(시트/캐시/시드)에서 읽어옵니다.
-   참가자에게 줄 주소:  course.html?c=<slug>
-   ============================================================ */
-function qparam(name) { return new URLSearchParams(location.search).get(name); }
+function qparam(n){ return new URLSearchParams(location.search).get(n); }
 
 function app() {
   const slug = qparam('c');
   return {
-    found: false,
-    ready: false,
-    hubUrl: 'index.html',
-    screen: 'loading',
-    showFaq: false,
-    STEPS: [],
-    CONFIG: { courseName:'', previewUrl:'', autoUrl:'', startUrl:'', info:{ title:'', rows:[], suppliesTitle:'', supplies:[] } },
-    FAQ_ITEMS: [],
-    _storageKey: 'onboarding_progress_' + (slug || 'default'),
-    progress: {},
+    found:false, ready:false, screen:'loading', showFaq:false,
+    STEPS:[], FAQ_ITEMS:[], mapReady:false,
+    CONFIG:{ courseName:'', previewUrl:'', autoUrl:'', startUrl:'' },
+    hero: OnboardingAPI.normHero(null, ''),
+    dir:  OnboardingAPI.normDirections(null),
+    info: { groups: [] },
+    _key: 'onboarding_progress_' + (slug || 'default'),
+    progress:{},
 
     async init() {
       let store;
       try { const r = await OnboardingAPI.load(); store = r.store; }
-      catch (e) { store = OnboardingAPI.seedStore(); }
+      catch(e){ store = OnboardingAPI.seedStore(); }
 
-      const course = (store.courses || []).find(c => c.slug === slug) || null;
-      if (!course) { this.found = false; this.screen = 'notfound'; document.title = '과정을 찾을 수 없습니다'; this.ready = true; return; }
+      const course = (store.courses||[]).find(c => c.slug === slug) || null;
+      if (!course) { this.found=false; this.screen='notfound'; document.title='과정을 찾을 수 없습니다'; this.ready=true; return; }
 
       this.found = true;
       this.CONFIG = {
         courseName: course.courseName || '교육',
         previewUrl: course.previewUrl || '',
-        autoUrl:    course.autoUrl    || '',
-        startUrl:   course.startUrl   || '',
-        info:       OnboardingAPI.normInfo(course.info)
+        autoUrl:    course.autoUrl || '',
+        startUrl:   course.startUrl || ''
       };
+      this.hero  = OnboardingAPI.normHero(course.hero, course.courseName);
+      this.info  = OnboardingAPI.normInfo(course.info);
+      this.dir   = OnboardingAPI.normDirections(course.directions);
       this.STEPS = OnboardingAPI.buildSteps(course);
       this.FAQ_ITEMS = (Array.isArray(course.faq) && course.faq.length) ? course.faq : (store.defaultFaq || []);
 
-      // 진행 상태: 단계/항목 수에 맞춰 새로 만들고, 저장된 값 중 구조가 같은 것만 복원
+      // 진행 상태: 구조가 같은 저장분만 복원
       const fresh = {};
-      this.STEPS.forEach(s => { fresh[s.id] = { checks: s.tasks.map(() => false), done: false }; });
+      this.STEPS.forEach(s => { fresh[s.id] = { checks: s.tasks.map(()=>false), done:false }; });
       try {
-        const saved = JSON.parse(localStorage.getItem(this._storageKey) || 'null');
+        const saved = JSON.parse(localStorage.getItem(this._key) || 'null');
         if (saved) this.STEPS.forEach(s => {
           const sv = saved[s.id];
           if (sv && Array.isArray(sv.checks) && sv.checks.length === s.tasks.length) fresh[s.id] = sv;
         });
-      } catch (e) {}
+      } catch(e){}
       this.progress = fresh;
-      this.$watch('progress', v => localStorage.setItem(this._storageKey, JSON.stringify(v)), { deep: true });
+      this.$watch('progress', v => localStorage.setItem(this._key, JSON.stringify(v)), { deep:true });
 
       document.title = (this.CONFIG.courseName || '교육') + ' — 입과 전 준비';
       this.ready = true;
       this.handleHash();
       window.addEventListener('hashchange', () => this.handleHash());
+      this.initMap();
     },
 
+    // ── 렌더 헬퍼 ──
+    icon(n, s){ return OnboardingAssets.iconSvg(n, s); },
+    illust(n){ return OnboardingAssets.illustSvg(n, 'w-full h-auto'); },
+    infoGroups(){ return (this.info.groups || []).filter(g => (g.title||'').trim() || (g.rows||[]).some(r => (r.label||'').trim() || (r.value||'').trim())); },
+    mapHref(){
+      if (this.dir.mapLink) return this.dir.mapLink;
+      if (this.dir.address) return 'https://map.kakao.com/?q=' + encodeURIComponent(this.dir.address);
+      return '#';
+    },
+
+    // ── 카카오맵 (키·좌표 있을 때만) ──
+    initMap() {
+      const key = (OnboardingAPI.config && OnboardingAPI.config.kakaoJsKey) || '';
+      if (!key || !this.dir.enabled || !this.dir.lat || !this.dir.lng) return;
+      const draw = () => {
+        try {
+          kakao.maps.load(() => {
+            const el = document.getElementById('kakaomap');
+            if (!el) return;
+            const pos = new kakao.maps.LatLng(this.dir.lat, this.dir.lng);
+            const map = new kakao.maps.Map(el, { center: pos, level: 4 });
+            new kakao.maps.Marker({ position: pos, map: map });
+            this.mapReady = true;
+          });
+        } catch(e) { this.mapReady = false; }
+      };
+      if (window.kakao && window.kakao.maps) { draw(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + encodeURIComponent(key) + '&autoload=false';
+      s.onload = draw;
+      s.onerror = () => { this.mapReady = false; };
+      document.head.appendChild(s);
+    },
+
+    // ── 라우팅 ──
     handleHash() {
       if (!this.found) return;
       const h = location.hash;
-      if (!h || h === '#/' || h === '#') this.screen = 'landing';
-      else if (h === '#complete') { this.allDone() ? this.screen = 'complete' : this.navigate('dashboard'); }
-      else if (h.startsWith('#step-')) this.screen = h.slice(1);
-      else if (h === '#dashboard') this.screen = 'dashboard';
-      else this.screen = 'landing';
+      if (h === '#dashboard') this.screen='dashboard';
+      else if (h === '#complete') this.allDone() ? this.screen='complete' : this.navigate('dashboard');
+      else this.screen='landing';
+    },
+    navigate(t) {
+      this.screen = t;
+      history.pushState(null,'', location.pathname + location.search + '#' + (t==='landing' ? '' : t));
+      window.scrollTo(0,0);
+      if (t==='landing') this.$nextTick(()=>this.initMap());
     },
 
-    navigate(target) {
-      this.screen = target;
-      const base = location.pathname + location.search;   // ?c=slug 유지
-      const hash = target === 'landing' ? '/' : target;
-      history.pushState(null, '', base + '#' + hash);
-      window.scrollTo(0, 0);
-    },
-
-    get currentStepId() {
-      if (!this.screen.startsWith('step-')) return 1;
-      return parseInt(this.screen.split('-')[1]) || 1;
-    },
-    currentStep()    { return this.STEPS.find(s => s.id === this.currentStepId) || this.STEPS[0]; },
-    hasInfo() {
-      const i = this.CONFIG.info;
-      if (!i) return false;
-      const rows = (i.rows || []).filter(r => (r.label || '').trim() || (r.value || '').trim());
-      const sup  = (i.supplies || []).filter(s => (s || '').trim());
-      return rows.length > 0 || sup.length > 0;
-    },
-    completedCount() { return this.STEPS.filter(s => this.progress[s.id]?.done).length; },
-    allDone()        { return this.STEPS.length > 0 && this.STEPS.every(s => this.progress[s.id]?.done); },
-
-    canCheckTask(sid, ti) {
-      if (ti === 0) return true;
-      return !!this.progress[sid]?.checks[ti - 1];
-    },
-    toggleCheck(sid, ti) {
-      if (!this.canCheckTask(sid, ti)) return;
-      const step = this.STEPS.find(s => s.id === sid);
-      if (!step) return;
+    // ── 체크 로직 ──
+    completedCount(){ return this.STEPS.filter(s => this.progress[s.id]?.done).length; },
+    allDone(){ return this.STEPS.length>0 && this.STEPS.every(s => this.progress[s.id]?.done); },
+    canCheck(sid, ti){ return ti===0 ? true : !!this.progress[sid]?.checks[ti-1]; },
+    toggle(sid, ti) {
+      if (!this.canCheck(sid,ti)) return;
+      const step = this.STEPS.find(s => s.id===sid); if (!step) return;
       const checks = [...this.progress[sid].checks];
       checks[ti] = !checks[ti];
-      if (!checks[ti]) for (let i = ti + 1; i < checks.length; i++) checks[i] = false;
-      const done = checks.slice(0, step.tasks.length).every(Boolean);
-      this.progress = { ...this.progress, [sid]: { checks, done } };
-    },
-    canProceedStep(sid) {
-      const step = this.STEPS.find(s => s.id === sid);
-      if (!step) return false;
-      return this.progress[sid]?.checks.slice(0, step.tasks.length).every(Boolean);
-    },
-
-    goToStep(id) { this.navigate(`step-${id}`); },
-    prevStep()   { this.navigate(this.currentStepId === 1 ? 'dashboard' : `step-${this.currentStepId - 1}`); },
-    nextStep()   { this.navigate(this.currentStepId < this.STEPS.length ? `step-${this.currentStepId + 1}` : (this.allDone() ? 'complete' : 'dashboard')); }
+      if (!checks[ti]) for (let i=ti+1;i<checks.length;i++) checks[i]=false;
+      this.progress = { ...this.progress, [sid]: { checks, done: checks.every(Boolean) } };
+    }
   };
 }
 </script>

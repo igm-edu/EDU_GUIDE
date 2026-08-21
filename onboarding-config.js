@@ -15,5 +15,11 @@
 window.ONBOARDING_CONFIG = {
   apiUrl:      "https://script.google.com/macros/s/AKfycbxLoqKoBcztDpH5eDllC3DrHBH3UwHZh3fqC2x-wr6g3Qya64BdsjUUJrnsQGKTu4T7/exec",          // 예) https://script.google.com/macros/s/AKfyc.../exec
   apiToken:    "igm2026",          // 예) igm-onboarding-2026
-  hubPassword: "igm2026"
+  hubPassword: "igm2026",
+
+  // 카카오맵 JavaScript 키 (선택)
+  //  · developers.kakao.com → 앱 생성 → 앱 키의 "JavaScript 키"
+  //  · 플랫폼 → Web → 사이트 도메인에 배포 주소를 등록해야 동작합니다.
+  //  · 비워두면 지도 대신 "지도 보기" 링크 버튼이 표시됩니다.
+  kakaoJsKey:  "e2e693645288ff1d6909ae4f6bc5f4c1"
 };

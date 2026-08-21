@@ -76,22 +76,53 @@ window.ONBOARDING = {
       autoUrl:    "https://youtu.be/zXXXNCCWLBk?si=mcuznmRGs7CV0Ctg",
       startUrl:   "",
 
-      // 메인 화면에 표시되는 교육 안내
+      // 메인 상단 HERO
+      hero: {
+        badge: "교육 안내",
+        titleLines: ["클로드 에이전트 기반", "업무혁명 과정에 오신 것을", "환영합니다!"],
+        highlightLast: true,
+        description: "과정 시작에 앞서 아래의 교육 일정, 장소, 준비물을 확인해 주세요.\n원활한 학습 경험을 위해 필요한 정보를 미리 준비했습니다.",
+        illust: "graduation"
+      },
+
+      // 메인 좌측 교육 안내 (그룹)
       info: {
-        title: "교육 안내",
-        rows: [
-          { label: "일시", value: "2026년 7월 29일(수) 08:30 ~ 17:30 (8시간)", linkLabel: "", linkUrl: "" },
-          { label: "장소", value: "IGM세계경영연구원 2층 더블린\n서울 중구 장충단로 8길 11-16", linkLabel: "지도", linkUrl: "https://naver.me/5GpXhkyi" },
-          { label: "주차", value: "IGM세계경영연구원 본원 1층 (사전 설문 내 차량 번호를 기재해주세요.)", linkLabel: "", linkUrl: "" }
-        ],
-        suppliesTitle: "준비물",
-        supplies: [
-          "개인 노트북 (사내 보안 상 AI 사용이 가능한지 점검)",
-          "노트북 충전기 및 마우스",
-          "클로드 회원가입이 완료된 계정",
-          "명함 지참 (동료 원우님들과 네트워크를 만들어가세요)",
-          "이번 교육을 통해 해소하고 싶은 고민"
+        groups: [
+          { icon: "calendar", title: "교육 일정", note: "", rows: [
+            { icon: "calendar", label: "교육 일시", value: "2026년 7월 29일(수)", linkLabel: "", linkUrl: "" },
+            { icon: "clock",    label: "교육 시간", value: "08:30 ~ 17:30 (8시간)", linkLabel: "", linkUrl: "" }
+          ]},
+          { icon: "pin", title: "장소", note: "", rows: [
+            { icon: "building", label: "교육 장소", value: "IGM세계경영연구원 2층 더블린", linkLabel: "", linkUrl: "" },
+            { icon: "pin",      label: "주소",     value: "서울 중구 장충단로 8길 11-16", linkLabel: "지도", linkUrl: "https://naver.me/5GpXhkyi" },
+            { icon: "car",      label: "주차",     value: "IGM세계경영연구원 본원 1층\n(사전 설문 내 차량 번호를 기재해주세요.)", linkLabel: "", linkUrl: "" }
+          ]},
+          { icon: "clipboard", title: "준비물", note: "보다 원활한 학습을 위해 준비물을 꼭 확인해 주세요.", rows: [
+            { icon: "laptop", label: "노트북", value: "개인 노트북 (사내 보안 상 AI 사용이 가능한지 점검)", linkLabel: "", linkUrl: "" },
+            { icon: "monitor", label: "주변기기", value: "노트북 충전기 및 마우스", linkLabel: "", linkUrl: "" },
+            { icon: "check",  label: "계정",   value: "클로드 회원가입이 완료된 계정", linkLabel: "", linkUrl: "" },
+            { icon: "card",   label: "명함",   value: "동료 원우님들과 네트워크를 만들어가세요", linkLabel: "", linkUrl: "" },
+            { icon: "edit",   label: "고민",   value: "이번 교육을 통해 해소하고 싶은 고민", linkLabel: "", linkUrl: "" }
+          ]}
         ]
+      },
+
+      // 오시는 길
+      directions: {
+        enabled: true,
+        title: "오시는 길",
+        placeName: "IGM세계경영연구원 2층 더블린",
+        placeDetail: "",
+        address: "서울 중구 장충단로 8길 11-16",
+        lat: null, lng: null,
+        mapLink: "https://naver.me/5GpXhkyi",
+        mapImage: "",
+        transit: [
+          { icon: "subway", label: "지하철", value: "" },
+          { icon: "bus",    label: "버스",   value: "" },
+          { icon: "car",    label: "자가용", value: "본원 1층 주차 가능" }
+        ],
+        note: "주차 공간이 혼잡할 수 있으니 가급적 대중교통 이용을 권장드립니다."
       },
       steps: [
         {

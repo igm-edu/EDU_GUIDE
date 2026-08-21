@@ -10,6 +10,7 @@
   <!-- 데이터/연동 (시드 → 설정 → API 순서로 로드) -->
   <script src="./onboarding-data.js"></script>
   <script src="./onboarding-config.js"></script>
+  <script src="./onboarding-assets.js"></script>
   <script src="./onboarding-api.js"></script>
   <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
   <script>
@@ -245,76 +246,188 @@
         </div>
       </div>
 
-      <!-- 교육 안내 -->
+      <!-- HERO -->
+      <div class="card p-6 mb-5">
+        <h2 class="text-sm font-extrabold text-gray-900 mb-1">메인 상단 (HERO)</h2>
+        <p class="text-xs text-gray-400 mb-5">참가자가 처음 보는 큰 제목 영역입니다.</p>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="lbl">배지 문구</label>
+              <input type="text" x-model="form.hero.badge" class="inp" placeholder="교육 안내">
+            </div>
+            <div>
+              <label class="lbl">일러스트</label>
+              <select x-model="form.hero.illust" class="inp">
+                <option value="">없음</option>
+                <template x-for="il in illustList" :key="il.key">
+                  <option :value="il.key" x-text="il.label"></option>
+                </template>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="lbl">제목 (줄 단위)</label>
+            <div class="space-y-1.5">
+              <template x-for="(ln, li) in form.hero.titleLines" :key="li">
+                <div class="flex gap-2 items-center">
+                  <input type="text" x-model="form.hero.titleLines[li]" class="inp !py-1.5" :placeholder="'제목 ' + (li+1) + '번째 줄'">
+                  <button type="button" @click="form.hero.titleLines.splice(li,1)" class="btn-ghost !text-red-400 hover:!bg-red-50 !px-1.5" title="삭제">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+              </template>
+            </div>
+            <div class="flex items-center justify-between mt-2">
+              <button type="button" @click="form.hero.titleLines.push('')" class="btn-ghost !text-blue-600 hover:!bg-blue-50 text-xs">+ 줄 추가</button>
+              <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                <button type="button" @click="form.hero.highlightLast = !form.hero.highlightLast"
+                        class="w-8 h-5 rounded-full transition-colors flex items-center px-0.5"
+                        :class="form.hero.highlightLast ? 'bg-blue-600 justify-end' : 'bg-gray-300 justify-start'">
+                  <span class="w-4 h-4 bg-white rounded-full shadow"></span>
+                </button>
+                마지막 줄 파란색 강조
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="lbl">설명</label>
+            <textarea x-model="form.hero.description" rows="2" class="inp resize-none" placeholder="과정 시작에 앞서 ..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 교육 안내 그룹 -->
       <div class="card p-6 mb-5">
         <div class="flex items-center justify-between mb-1">
-          <h2 class="text-sm font-extrabold text-gray-900">교육 안내 (메인 화면 표시)</h2>
+          <h2 class="text-sm font-extrabold text-gray-900">교육 안내 (좌측 카드)</h2>
           <button @click="loadSampleInfo()" class="text-xs font-semibold text-blue-600 hover:text-blue-800">예시 서식 불러오기</button>
         </div>
-        <p class="text-xs text-gray-400 mb-5">일시·장소·주차처럼 항목을 자유롭게 추가하세요. 내용이 없으면 메인 화면에 표시되지 않습니다.</p>
+        <p class="text-xs text-gray-400 mb-5">교육 일정·장소·준비물처럼 그룹으로 묶어 관리합니다. 내용이 없으면 표시되지 않습니다.</p>
 
-        <div class="mb-5">
-          <label class="lbl">제목</label>
-          <input type="text" x-model="form.info.title" class="inp" placeholder="교육 안내">
-        </div>
+        <div class="space-y-5">
+          <template x-for="(g, gi) in form.info.groups" :key="gi">
+            <div class="border border-gray-100 rounded-2xl p-4 bg-gray-50/40">
+              <div class="flex gap-2 items-center mb-3">
+                <select x-model="g.icon" class="inp !py-1.5 !w-28 flex-shrink-0 text-xs">
+                  <template x-for="ic in iconList" :key="ic.key">
+                    <option :value="ic.key" x-text="ic.label"></option>
+                  </template>
+                </select>
+                <input type="text" x-model="g.title" class="inp !py-1.5 font-bold flex-1" placeholder="그룹 제목 (예: 교육 일정)">
+                <button type="button" @click="moveGroup(gi,-1)" :disabled="gi===0" class="btn-ghost !px-1.5 disabled:opacity-30" title="위로">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+                </button>
+                <button type="button" @click="moveGroup(gi,1)" :disabled="gi===form.info.groups.length-1" class="btn-ghost !px-1.5 disabled:opacity-30" title="아래로">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <button type="button" @click="form.info.groups.splice(gi,1)" class="btn-ghost !text-red-400 hover:!bg-red-50 !px-1.5" title="그룹 삭제">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                </button>
+              </div>
 
-        <!-- 안내 항목 -->
-        <label class="lbl">안내 항목</label>
-        <div class="space-y-2.5">
-          <template x-for="(row, ri) in form.info.rows" :key="ri">
-            <div class="bg-gray-50/60 border border-gray-100 rounded-xl p-3">
-              <div class="flex gap-2 items-start">
-                <div class="flex-1 min-w-0 space-y-1.5">
-                  <div class="flex gap-2">
-                    <input type="text" x-model="row.label" class="inp !py-1.5 !w-24 flex-shrink-0 font-semibold" placeholder="일시">
-                    <textarea x-model="row.value" rows="1" class="inp !py-1.5 flex-1 resize-none" placeholder="내용 (줄바꿈 가능)"></textarea>
+              <div class="space-y-2">
+                <template x-for="(r, ri) in g.rows" :key="ri">
+                  <div class="bg-white border border-gray-100 rounded-xl p-2.5">
+                    <div class="flex gap-2 items-start">
+                      <select x-model="r.icon" class="inp !py-1.5 !w-24 flex-shrink-0 text-xs">
+                        <option value="">아이콘</option>
+                        <template x-for="ic in iconList" :key="ic.key">
+                          <option :value="ic.key" x-text="ic.label"></option>
+                        </template>
+                      </select>
+                      <div class="flex-1 min-w-0 space-y-1.5">
+                        <div class="flex gap-1.5">
+                          <input type="text" x-model="r.label" class="inp !py-1.5 !w-24 flex-shrink-0 font-semibold text-xs" placeholder="라벨">
+                          <textarea x-model="r.value" rows="1" class="inp !py-1.5 flex-1 resize-none text-xs" placeholder="내용 (줄바꿈 가능)"></textarea>
+                        </div>
+                        <div class="flex gap-1.5">
+                          <input type="text" x-model="r.linkLabel" class="inp !py-1.5 !w-24 flex-shrink-0 text-xs" placeholder="지도">
+                          <input type="url" x-model="r.linkUrl" class="inp !py-1.5 flex-1 text-xs" placeholder="링크 주소 (선택)">
+                        </div>
+                      </div>
+                      <button type="button" @click="g.rows.splice(ri,1)" class="btn-ghost !text-red-400 hover:!bg-red-50 !px-1.5 flex-shrink-0" title="행 삭제">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    </div>
                   </div>
-                  <div class="flex gap-2">
-                    <input type="text" x-model="row.linkLabel" class="inp !py-1.5 !w-24 flex-shrink-0 text-xs" placeholder="지도">
-                    <input type="url" x-model="row.linkUrl" class="inp !py-1.5 flex-1 text-xs" placeholder="링크 주소 (선택) https://...">
-                  </div>
-                </div>
-                <div class="flex flex-col gap-0.5 flex-shrink-0">
-                  <button type="button" @click="moveInfoRow(ri,-1)" :disabled="ri===0" class="btn-ghost !px-1.5 !py-1 disabled:opacity-30" title="위로">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-                  </button>
-                  <button type="button" @click="moveInfoRow(ri,1)" :disabled="ri===form.info.rows.length-1" class="btn-ghost !px-1.5 !py-1 disabled:opacity-30" title="아래로">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-                  </button>
-                  <button type="button" @click="form.info.rows.splice(ri,1)" class="btn-ghost !text-red-400 hover:!text-red-600 hover:!bg-red-50 !px-1.5 !py-1" title="삭제">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  </button>
-                </div>
+                </template>
+              </div>
+
+              <div class="flex items-center gap-2 mt-2">
+                <button type="button" @click="g.rows.push(OnboardingAPI.blankInfoRow())" class="btn-ghost !text-blue-600 hover:!bg-blue-50 text-xs">+ 항목 추가</button>
+              </div>
+              <div class="mt-2">
+                <input type="text" x-model="g.note" class="inp !py-1.5 text-xs" placeholder="그룹 하단 안내문 (선택)">
               </div>
             </div>
           </template>
         </div>
-        <button type="button" @click="form.info.rows.push(OnboardingAPI.blankInfoRow())" class="btn-ghost !text-blue-600 hover:!bg-blue-50 mt-2 text-xs">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          안내 항목 추가
+        <button type="button" @click="form.info.groups.push(OnboardingAPI.blankInfoGroup())" class="btn-outline w-full justify-center mt-4 !py-2.5">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          그룹 추가
         </button>
+      </div>
 
-        <!-- 준비물 -->
-        <div class="mt-6 pt-5 border-t border-gray-100">
-          <div class="flex items-center gap-2 mb-2">
-            <input type="text" x-model="form.info.suppliesTitle" class="inp !py-1.5 !w-28 font-semibold text-xs" placeholder="준비물">
-            <span class="text-[11px] text-gray-400">항목은 화면에서 번호가 자동으로 붙습니다</span>
+      <!-- 오시는 길 -->
+      <div class="card p-6 mb-5">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-sm font-extrabold text-gray-900">오시는 길</h2>
+          <div class="flex items-center gap-2">
+            <button @click="loadSampleDirections()" class="text-xs font-semibold text-blue-600 hover:text-blue-800">예시 불러오기</button>
+            <button type="button" @click="form.directions.enabled = !form.directions.enabled"
+                    class="w-10 h-6 rounded-full transition-colors flex items-center px-0.5"
+                    :class="form.directions.enabled ? 'bg-blue-600 justify-end' : 'bg-gray-300 justify-start'">
+              <span class="w-5 h-5 bg-white rounded-full shadow"></span>
+            </button>
           </div>
-          <div class="space-y-2">
-            <template x-for="(sup, si) in form.info.supplies" :key="si">
-              <div class="flex gap-2 items-start">
-                <span class="w-6 h-6 mt-1 flex-shrink-0 rounded-full bg-blue-100 text-blue-600 text-xs font-bold flex items-center justify-center" x-text="si+1"></span>
-                <textarea x-model="form.info.supplies[si]" rows="1" class="inp !py-1.5 flex-1 resize-none" placeholder="준비물 내용"></textarea>
-                <button type="button" @click="form.info.supplies.splice(si,1)" class="btn-ghost !text-red-400 hover:!text-red-600 hover:!bg-red-50 !px-1.5 mt-1 flex-shrink-0" title="삭제">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            </template>
+        </div>
+        <p class="text-xs text-gray-400 mb-5" x-text="form.directions.enabled ? '메인 화면에 표시됩니다.' : '꺼져 있어 표시되지 않습니다.'"></p>
+
+        <div x-show="form.directions.enabled" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="lbl">제목</label><input type="text" x-model="form.directions.title" class="inp" placeholder="오시는 길"></div>
+            <div><label class="lbl">장소명</label><input type="text" x-model="form.directions.placeName" class="inp" placeholder="IGM세계경영연구원 2층 더블린"></div>
           </div>
-          <button type="button" @click="form.info.supplies.push('')" class="btn-ghost !text-blue-600 hover:!bg-blue-50 mt-2 text-xs">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            준비물 추가
-          </button>
+          <div>
+            <label class="lbl">주소</label>
+            <div class="flex gap-2">
+              <input type="text" x-model="form.directions.address" class="inp flex-1" placeholder="서울 중구 장충단로 8길 11-16">
+              <button type="button" @click="findCoords()" :disabled="geocoding" class="btn-outline !py-2 !px-3 whitespace-nowrap flex-shrink-0">
+                <span x-text="geocoding ? '찾는 중…' : '좌표 찾기'"></span>
+              </button>
+            </div>
+            <p class="text-[11px] mt-1" :class="form.directions.lat ? 'text-emerald-600' : 'text-gray-400'"
+               x-text="form.directions.lat ? ('좌표 저장됨 · ' + Number(form.directions.lat).toFixed(5) + ', ' + Number(form.directions.lng).toFixed(5)) : '좌표가 없으면 지도 대신 링크 버튼이 표시됩니다.'"></p>
+          </div>
+          <div>
+            <label class="lbl">지도 링크 (선택)</label>
+            <input type="url" x-model="form.directions.mapLink" class="inp" placeholder="비우면 주소로 카카오맵 검색 링크가 만들어집니다">
+          </div>
+
+          <div>
+            <label class="lbl">교통편</label>
+            <div class="space-y-2">
+              <template x-for="(t, ti) in form.directions.transit" :key="ti">
+                <div class="flex gap-2 items-start">
+                  <select x-model="t.icon" class="inp !py-1.5 !w-24 flex-shrink-0 text-xs">
+                    <template x-for="ic in iconList" :key="ic.key"><option :value="ic.key" x-text="ic.label"></option></template>
+                  </select>
+                  <input type="text" x-model="t.label" class="inp !py-1.5 !w-24 flex-shrink-0 font-semibold text-xs" placeholder="지하철">
+                  <textarea x-model="t.value" rows="1" class="inp !py-1.5 flex-1 resize-none text-xs" placeholder="2호선 역삼역 4번 출구 도보 5분"></textarea>
+                  <button type="button" @click="form.directions.transit.splice(ti,1)" class="btn-ghost !text-red-400 hover:!bg-red-50 !px-1.5 flex-shrink-0" title="삭제">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+              </template>
+            </div>
+            <button type="button" @click="form.directions.transit.push(OnboardingAPI.blankTransit())" class="btn-ghost !text-blue-600 hover:!bg-blue-50 mt-2 text-xs">+ 교통편 추가</button>
+          </div>
+
+          <div>
+            <label class="lbl">하단 안내문 (선택)</label>
+            <input type="text" x-model="form.directions.note" class="inp" placeholder="주차 공간이 혼잡할 수 있으니 대중교통을 권장드립니다.">
+          </div>
         </div>
       </div>
 
@@ -347,6 +460,22 @@
                 <div>
                   <label class="lbl">단계 설명</label>
                   <textarea x-model="step.description" rows="2" class="inp resize-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="lbl">카드 일러스트</label>
+                    <select x-model="step.illust" class="inp">
+                      <option value="">없음</option>
+                      <template x-for="il in illustList" :key="il.key">
+                        <option :value="il.key" x-text="il.label"></option>
+                      </template>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="lbl">카드 하단 버튼</label>
+                    <input type="text" x-model="step.cta.label" class="inp !py-1.5 mb-1.5" placeholder="버튼 문구 (예: 설치 가이드 보기)">
+                    <input type="url" x-model="step.cta.url" class="inp !py-1.5" placeholder="링크 주소 (비우면 숨김)">
+                  </div>
                 </div>
                 <div>
                   <label class="lbl">이미지 (선택)</label>
@@ -473,6 +602,8 @@ function cloneStep(s) {
   s = s || {};
   return {
     title: s.title || '', shortTitle: s.shortTitle || '', description: s.description || '', image: s.image || '',
+    illust: s.illust || '',
+    cta: { label: (s.cta && s.cta.label) || '', url: (s.cta && s.cta.url) || '' },
     tasks: (s.tasks || []).map(cloneTask)
   };
 }
@@ -480,10 +611,25 @@ function cloneStep(s) {
 function cloneInfo(info) {
   const i = OnboardingAPI.normInfo(info);
   return {
-    title: i.title,
-    rows: i.rows.map(r => ({ label: r.label, value: r.value, linkLabel: r.linkLabel, linkUrl: r.linkUrl })),
-    suppliesTitle: i.suppliesTitle,
-    supplies: i.supplies.slice()
+    groups: i.groups.map(g => ({
+      icon: g.icon, title: g.title, note: g.note,
+      rows: g.rows.map(r => ({ icon: r.icon, label: r.label, value: r.value, linkLabel: r.linkLabel, linkUrl: r.linkUrl }))
+    }))
+  };
+}
+
+function cloneHero(h, courseName) {
+  const x = OnboardingAPI.normHero(h, courseName);
+  return { badge: x.badge, titleLines: x.titleLines.slice(), highlightLast: x.highlightLast, description: x.description, illust: x.illust };
+}
+
+function cloneDir(d) {
+  const x = OnboardingAPI.normDirections(d);
+  return {
+    enabled: x.enabled, title: x.title, placeName: x.placeName, placeDetail: x.placeDetail,
+    address: x.address, lat: x.lat, lng: x.lng, mapLink: x.mapLink, mapImage: x.mapImage,
+    transit: x.transit.map(t => ({ icon: t.icon, label: t.label, value: t.value })),
+    note: x.note
   };
 }
 
@@ -491,7 +637,9 @@ function blankCourse(store) {
   return {
     slug: '', courseName: '', tag: '', active: true,
     previewUrl: '', autoUrl: '', startUrl: '',
+    hero: cloneHero(null, ''),
     info: cloneInfo(null),
+    directions: cloneDir(null),
     steps: (store.defaultSteps || []).map(cloneStep),
     faq: []
   };
@@ -503,7 +651,9 @@ function toForm(course) {
     slug: course.slug || '', courseName: course.courseName || '', tag: course.tag || '',
     active: course.active !== false,
     previewUrl: course.previewUrl || '', autoUrl: course.autoUrl || '', startUrl: course.startUrl || '',
+    hero: cloneHero(course.hero, course.courseName),
     info: cloneInfo(course.info),
+    directions: cloneDir(course.directions),
     steps: (course.steps || []).map(cloneStep),
     faq: Array.isArray(course.faq) ? course.faq.map(f => ({ q: f.q || '', a: f.a || '' })) : []
   };
@@ -518,20 +668,46 @@ function fromForm(form) {
     previewUrl: (form.previewUrl || '').trim(),
     autoUrl: (form.autoUrl || '').trim(),
     startUrl: (form.startUrl || '').trim(),
+    hero: {
+      badge: (form.hero?.badge || '').trim(),
+      titleLines: (form.hero?.titleLines || []).map(x => (x || '').trim()).filter(Boolean),
+      highlightLast: !!form.hero?.highlightLast,
+      description: (form.hero?.description || '').trim(),
+      illust: form.hero?.illust || ''
+    },
     info: {
-      title: (form.info?.title || '').trim() || '교육 안내',
-      rows: (form.info?.rows || [])
-        .map(r => ({ label: (r.label || '').trim(), value: (r.value || '').trim(),
-                     linkLabel: (r.linkLabel || '').trim(), linkUrl: (r.linkUrl || '').trim() }))
-        .filter(r => r.label || r.value),
-      suppliesTitle: (form.info?.suppliesTitle || '').trim() || '준비물',
-      supplies: (form.info?.supplies || []).map(s => (s || '').trim()).filter(Boolean)
+      groups: (form.info?.groups || []).map(g => ({
+        icon: g.icon || 'info',
+        title: (g.title || '').trim(),
+        note: (g.note || '').trim(),
+        rows: (g.rows || [])
+          .map(r => ({ icon: r.icon || '', label: (r.label || '').trim(), value: (r.value || '').trim(),
+                       linkLabel: (r.linkLabel || '').trim(), linkUrl: (r.linkUrl || '').trim() }))
+          .filter(r => r.label || r.value)
+      })).filter(g => g.title || g.rows.length)
+    },
+    directions: {
+      enabled: !!form.directions?.enabled,
+      title: (form.directions?.title || '').trim() || '오시는 길',
+      placeName: (form.directions?.placeName || '').trim(),
+      placeDetail: (form.directions?.placeDetail || '').trim(),
+      address: (form.directions?.address || '').trim(),
+      lat: form.directions?.lat ?? null,
+      lng: form.directions?.lng ?? null,
+      mapLink: (form.directions?.mapLink || '').trim(),
+      mapImage: (form.directions?.mapImage || '').trim(),
+      transit: (form.directions?.transit || [])
+        .map(t => ({ icon: t.icon || 'subway', label: (t.label || '').trim(), value: (t.value || '').trim() }))
+        .filter(t => t.label || t.value),
+      note: (form.directions?.note || '').trim()
     },
     steps: (form.steps || []).map(s => ({
       title: (s.title || '').trim(),
       shortTitle: (s.shortTitle || '').trim(),
       description: (s.description || '').trim(),
       image: (s.image || '').trim(),
+      illust: s.illust || '',
+      cta: { label: (s.cta?.label || '').trim(), url: (s.cta?.url || '').trim() },
       tasks: (s.tasks || []).map(t => ({
         title: (t.title || '').trim(),
         desc: (t.desc || '').trim(),
@@ -638,20 +814,62 @@ function hub() {
       const arr = this.form.steps;
       [arr[si], arr[ni]] = [arr[ni], arr[si]];
     },
-    // ── 교육 안내 ──
-    OnboardingAPI,   // 템플릿에서 blankInfoRow() 호출용
-    moveInfoRow(ri, dir) {
-      const ni = ri + dir, arr = this.form.info.rows;
+    // ── 교육 안내 / 오시는 길 ──
+    OnboardingAPI,   // 템플릿에서 blankInfoRow() 등 호출용
+    illustList: OnboardingAssets.illustList,
+    iconList: OnboardingAssets.iconList,
+    geocoding: false,
+
+    moveGroup(gi, dir) {
+      const ni = gi + dir, arr = this.form.info.groups;
       if (ni < 0 || ni >= arr.length) return;
-      [arr[ri], arr[ni]] = [arr[ni], arr[ri]];
+      [arr[gi], arr[ni]] = [arr[ni], arr[gi]];
     },
     loadSampleInfo() {
-      const s = OnboardingAPI.sampleInfo();
-      if (this.form.info.rows.length || this.form.info.supplies.length) {
-        if (!confirm('현재 입력한 교육 안내 내용을 예시 서식으로 교체할까요?')) return;
-      }
-      this.form.info = cloneInfo(s);
+      if ((this.form.info.groups || []).length && !confirm('현재 입력한 교육 안내 내용을 예시 서식으로 교체할까요?')) return;
+      this.form.info = cloneInfo(OnboardingAPI.sampleInfo());
       this.showToast('예시 서식을 불러왔습니다.');
+    },
+    loadSampleDirections() {
+      if (!confirm('오시는 길 내용을 예시로 교체할까요?')) return;
+      this.form.directions = cloneDir(OnboardingAPI.sampleDirections());
+      this.showToast('예시를 불러왔습니다.');
+    },
+
+    // 주소 → 좌표 (카카오 지오코딩, 저장해두면 참가자 페이지가 빠르게 지도를 그림)
+    findCoords() {
+      const key = (OnboardingAPI.config && OnboardingAPI.config.kakaoJsKey) || '';
+      const addr = (this.form.directions.address || '').trim();
+      if (!key) { this.showToast('onboarding-config.js 에 카카오 JavaScript 키를 먼저 넣어주세요.', true); return; }
+      if (!addr) { this.showToast('주소를 먼저 입력해주세요.', true); return; }
+      this.geocoding = true;
+      const run = () => {
+        try {
+          kakao.maps.load(() => {
+            const geocoder = new kakao.maps.services.Geocoder();
+            const done = (res, status) => {
+              this.geocoding = false;
+              if (status === kakao.maps.services.Status.OK && res[0]) {
+                this.form.directions.lat = parseFloat(res[0].y);
+                this.form.directions.lng = parseFloat(res[0].x);
+                this.showToast('좌표를 찾았습니다.');
+              } else {
+                this.showToast('주소로 좌표를 찾지 못했습니다. 도로명 주소로 시도해보세요.', true);
+              }
+            };
+            geocoder.addressSearch(addr, (res, status) => {
+              if (status === kakao.maps.services.Status.OK) return done(res, status);
+              geocoder.keywordSearch ? done(res, status) : done(res, status);
+            });
+          });
+        } catch (e) { this.geocoding = false; this.showToast('지도 SDK 오류: ' + e, true); }
+      };
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) { run(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + encodeURIComponent(key) + '&autoload=false&libraries=services';
+      s.onload = run;
+      s.onerror = () => { this.geocoding = false; this.showToast('카카오 지도 SDK를 불러오지 못했습니다. 키·도메인 등록을 확인해주세요.', true); };
+      document.head.appendChild(s);
     },
 
     addTask(si) { this.form.steps[si].tasks.push(OnboardingAPI.blankTask()); },

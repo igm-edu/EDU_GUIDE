@@ -43,28 +43,104 @@
   function migrateStep(st, dstep, legacyUrl) {
     st = st || {};
     const dtasks = (dstep && dstep.tasks) || [];
+    const tasks = (st.tasks || []).map((t, j) => migrateTask(t, dtasks[j], legacyUrl));
+
+    // 카드 하단 CTA: 없으면 링크가 켜진 첫 항목에서 승계
+    let cta = st.cta ? { label: st.cta.label || '', url: st.cta.url || '' } : null;
+    if (!cta) {
+      const t = tasks.find(x => x.link && x.link.enabled && x.link.url);
+      cta = t ? { label: t.link.label || '바로가기', url: t.link.url } : { label: '', url: '' };
+    }
     return {
       title: st.title || '',
       shortTitle: st.shortTitle || st.title || '',
       description: st.description || '',
       image: st.image || '',
-      tasks: (st.tasks || []).map((t, j) => migrateTask(t, dtasks[j], legacyUrl))
+      illust: st.illust || '',
+      cta: cta,
+      tasks: tasks
     };
   }
 
-  // 교육 안내 블록 정규화
+  function normRow(r) {
+    r = r || {};
+    return {
+      icon: r.icon || '',
+      label: r.label || '',
+      value: r.value || '',
+      linkLabel: r.linkLabel || '',
+      linkUrl: r.linkUrl || ''
+    };
+  }
+
+  /* 교육 안내 — 그룹 구조 (v3)
+     info = { groups:[{icon,title,rows:[row],note}] }
+     구버전(rows + supplies 평면 구조)은 자동으로 그룹으로 변환 */
   function normInfo(info) {
     info = info || {};
+
+    if (Array.isArray(info.groups)) {
+      return {
+        groups: info.groups.map(g => ({
+          icon: (g && g.icon) || 'info',
+          title: (g && g.title) || '',
+          rows: (Array.isArray(g && g.rows) ? g.rows : []).map(normRow),
+          note: (g && g.note) || ''
+        }))
+      };
+    }
+
+    // ── 구버전 변환 ──
+    const groups = [];
+    const rows = (Array.isArray(info.rows) ? info.rows : []).map(normRow);
+    if (rows.length) {
+      groups.push({ icon: 'calendar', title: info.title || '교육 안내', rows: rows, note: '' });
+    }
+    const sup = (Array.isArray(info.supplies) ? info.supplies : []).filter(s => String(s || '').trim());
+    if (sup.length) {
+      groups.push({
+        icon: 'clipboard',
+        title: info.suppliesTitle || '준비물',
+        rows: sup.map(s => ({ icon: 'check', label: '', value: String(s), linkLabel: '', linkUrl: '' })),
+        note: ''
+      });
+    }
+    return { groups: groups };
+  }
+
+  /* HERO — 메인 상단 영역 */
+  function normHero(h, courseName) {
+    h = h || {};
+    const lines = Array.isArray(h.titleLines) ? h.titleLines.filter(x => x !== undefined && x !== null).map(String) : null;
     return {
-      title: info.title || '교육 안내',
-      rows: (Array.isArray(info.rows) ? info.rows : []).map(r => ({
-        label: (r && r.label) || '',
-        value: (r && r.value) || '',
-        linkLabel: (r && r.linkLabel) || '',
-        linkUrl: (r && r.linkUrl) || ''
+      badge: h.badge !== undefined ? h.badge : '교육 안내',
+      titleLines: (lines && lines.length) ? lines : [String(courseName || '교육') + ' 과정에', '오신 것을', '환영합니다!'],
+      highlightLast: h.highlightLast !== undefined ? !!h.highlightLast : true,
+      description: h.description !== undefined ? h.description
+        : '과정 시작에 앞서 아래의 교육 일정, 장소, 준비물을 확인해 주세요.\n원활한 학습을 위해 필요한 정보를 미리 준비했습니다.',
+      illust: h.illust || 'graduation'
+    };
+  }
+
+  /* 오시는 길 */
+  function normDirections(d) {
+    d = d || {};
+    return {
+      enabled: d.enabled !== undefined ? !!d.enabled : false,
+      title: d.title || '오시는 길',
+      placeName: d.placeName || '',
+      placeDetail: d.placeDetail || '',
+      address: d.address || '',
+      lat: (typeof d.lat === 'number') ? d.lat : (parseFloat(d.lat) || null),
+      lng: (typeof d.lng === 'number') ? d.lng : (parseFloat(d.lng) || null),
+      mapLink: d.mapLink || '',
+      mapImage: d.mapImage || '',
+      transit: (Array.isArray(d.transit) ? d.transit : []).map(t => ({
+        icon: (t && t.icon) || 'subway',
+        label: (t && t.label) || '',
+        value: (t && t.value) || ''
       })),
-      suppliesTitle: info.suppliesTitle || '준비물',
-      supplies: (Array.isArray(info.supplies) ? info.supplies : []).map(s => String(s || ''))
+      note: d.note || ''
     };
   }
 
@@ -76,6 +152,10 @@
     } else {
       steps = ds.map((dstep, i) => migrateStep(dstep, dstep, course['step' + (i + 1) + 'Url'] || ''));
     }
+    // 일러스트 기본 배정 (미지정 시 순서대로)
+    const fallbackIllust = ['install', 'chat', 'survey', 'laptop', 'calendar', 'graduation'];
+    steps.forEach((s, i) => { if (!s.illust) s.illust = fallbackIllust[i % fallbackIllust.length]; });
+
     return {
       slug: course.slug || '',
       courseName: course.courseName || '',
@@ -84,7 +164,9 @@
       previewUrl: course.previewUrl || '',
       autoUrl: course.autoUrl || '',
       startUrl: course.startUrl || '',
+      hero: normHero(course.hero, course.courseName),
       info: normInfo(course.info),
+      directions: normDirections(course.directions),
       steps: steps,
       faq: Array.isArray(course.faq) ? course.faq.map(f => ({ q: f.q || '', a: f.a || '' })) : []
     };
@@ -109,27 +191,55 @@
       shortTitle: s.shortTitle || s.title || '',
       description: s.description || '',
       image: normalizeImg(s.image || ''),
+      illust: s.illust || '',
+      cta: { label: (s.cta && s.cta.label) || '', url: (s.cta && s.cta.url) || '' },
       tasks: (s.tasks || []).map(t => ({ title: t.title || '', desc: t.desc || '', link: normLink(t.link) }))
     }));
   }
 
   // 편집기용 빈 항목/단계
   function blankTask() { return { title: '', desc: '', link: { enabled: false, label: '', url: '' } }; }
-  function blankInfoRow() { return { label: '', value: '', linkLabel: '', linkUrl: '' }; }
-  // 예시 불러오기용 기본 안내 서식
+  function blankInfoRow() { return { icon: '', label: '', value: '', linkLabel: '', linkUrl: '' }; }
+  function blankInfoGroup() { return { icon: 'info', title: '새 그룹', rows: [blankInfoRow()], note: '' }; }
+  function blankTransit() { return { icon: 'subway', label: '', value: '' }; }
+
+  // 예시 불러오기용 기본 안내 서식 (그룹 구조)
   function sampleInfo() {
     return {
-      title: '교육 안내',
-      rows: [
-        { label: '일시', value: '2026년 0월 0일(요일) 00:00 ~ 00:00 (0시간)', linkLabel: '', linkUrl: '' },
-        { label: '장소', value: 'IGM세계경영연구원 2층 더블린\n서울 중구 장충단로 8길 11-16', linkLabel: '지도 보기', linkUrl: '' },
-        { label: '주차', value: 'IGM세계경영연구원 본원 1층 (사전 설문 내 차량 번호를 기재해주세요.)', linkLabel: '', linkUrl: '' }
-      ],
-      suppliesTitle: '준비물',
-      supplies: ['개인 노트북 (사내 보안 상 AI 사용이 가능한지 점검)', '노트북 충전기 및 마우스']
+      groups: [
+        { icon: 'calendar', title: '교육 일정', note: '', rows: [
+          { icon: 'calendar', label: '교육 기간', value: '2026년 0월 0일(요일)', linkLabel: '', linkUrl: '' },
+          { icon: 'clock',    label: '교육 시간', value: '00:00 ~ 00:00\n(점심시간 00:00 ~ 00:00)', linkLabel: '', linkUrl: '' },
+          { icon: 'users',    label: '모집 인원', value: '00명', linkLabel: '', linkUrl: '' }
+        ]},
+        { icon: 'pin', title: '장소', note: '', rows: [
+          { icon: 'building', label: '교육 장소', value: 'IGM세계경영연구원 2층 더블린', linkLabel: '', linkUrl: '' },
+          { icon: 'pin',      label: '주소', value: '서울 중구 장충단로 8길 11-16', linkLabel: '지도', linkUrl: '' },
+          { icon: 'car',      label: '주차', value: '본원 1층 (사전 설문에 차량 번호를 기재해주세요)', linkLabel: '', linkUrl: '' }
+        ]},
+        { icon: 'clipboard', title: '준비물', note: '보다 원활한 학습을 위해 준비물을 꼭 확인해 주세요.', rows: [
+          { icon: 'laptop', label: '노트북', value: '사내 보안 상 AI 사용이 가능한지 점검', linkLabel: '', linkUrl: '' },
+          { icon: 'check',  label: '계정',   value: '클로드 회원가입이 완료된 계정', linkLabel: '', linkUrl: '' },
+          { icon: 'card',   label: '명함',   value: '동료 원우님들과 네트워크를 만들어가세요', linkLabel: '', linkUrl: '' }
+        ]}
+      ]
     };
   }
-  function blankStep() { return { title: '새 단계', shortTitle: '', description: '', image: '', tasks: [blankTask()] }; }
+  function sampleDirections() {
+    return {
+      enabled: true, title: '오시는 길',
+      placeName: 'IGM세계경영연구원 2층 더블린', placeDetail: '',
+      address: '서울 중구 장충단로 8길 11-16',
+      lat: null, lng: null, mapLink: '', mapImage: '',
+      transit: [
+        { icon: 'subway', label: '지하철', value: '' },
+        { icon: 'bus',    label: '버스',   value: '' },
+        { icon: 'car',    label: '자가용', value: '' }
+      ],
+      note: '주차 공간이 혼잡할 수 있으니 가급적 대중교통 이용을 권장드립니다.'
+    };
+  }
+  function blankStep() { return { title: '새 단계', shortTitle: '', description: '', image: '', illust: 'laptop', cta: { label: '', url: '' }, tasks: [blankTask()] }; }
 
   function seedStore() { return migrateStore(JSON.parse(JSON.stringify(SEED))); }
 
@@ -229,7 +339,8 @@
 
   window.OnboardingAPI = {
     load, save, saveCourse, deleteCourse, buildSteps, normalizeImg, migrateStore, migrateCourse,
-    blankStep, blankTask, blankInfoRow, sampleInfo, normInfo,
+    blankStep, blankTask, blankInfoRow, blankInfoGroup, blankTransit,
+    sampleInfo, sampleDirections, normInfo, normHero, normDirections,
     readCache, writeCache, seedStore, exportDataJs, isEmptyStore,
     isRemote: !!CFG.apiUrl, config: CFG, seed: SEED
   };
