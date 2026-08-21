@@ -63,6 +63,11 @@
     .note{display:flex;gap:9px;align-items:flex-start;background:#F4F7FD;border:1px solid #E4EBF6;
           border-radius:12px;padding:12px 14px;font-size:13px;color:#5A6B85;line-height:1.6}
     #kakaomap{width:100%;height:190px;border-radius:12px;overflow:hidden;background:#EEF2F8}
+
+    /* HERO 일러스트 — 텍스트를 밀지 않도록 배경으로 깔림 */
+    .hero-bg{position:absolute;right:-16px;top:50%;transform:translateY(-50%);width:300px;
+             opacity:.5;pointer-events:none;user-select:none;z-index:0}
+    @media (min-width:1024px){ .hero-bg{width:360px;right:8px;opacity:.55} }
   </style>
 </head>
 
@@ -139,21 +144,20 @@
 
           <!-- HERO -->
           <div class="card p-8 lg:p-10 fu overflow-hidden relative">
-            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-6 items-center">
-              <div class="min-w-0">
-                <div x-show="hero.badge" class="badge mb-5" x-text="hero.badge"></div>
-                <h1 class="text-[2rem] lg:text-[2.35rem] font-extrabold text-gray-900 leading-[1.28] mb-4">
-                  <template x-for="(ln, li) in hero.titleLines" :key="li">
-                    <span class="block" :class="(hero.highlightLast && li===hero.titleLines.length-1) ? 'text-blue-600' : ''" x-text="ln"></span>
-                  </template>
-                </h1>
-                <p class="text-[14px] text-gray-500 leading-relaxed whitespace-pre-line mb-7" x-text="hero.description"></p>
-                <button @click="navigate('dashboard')" class="btn btn-primary">
-                  사전 준비 사항 확인하기
-                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </button>
-              </div>
-              <div class="hidden sm:block w-[240px] flex-shrink-0" x-html="illust(hero.illust)"></div>
+            <div x-show="hero.illust" class="hero-bg hidden sm:block" x-html="illust(hero.illust)" aria-hidden="true"></div>
+
+            <div class="relative z-10">
+              <div x-show="hero.badge" class="badge mb-5" x-text="hero.badge"></div>
+              <h1 class="text-[2rem] lg:text-[2.35rem] font-extrabold text-gray-900 leading-[1.28] mb-4">
+                <template x-for="(ln, li) in hero.titleLines" :key="li">
+                  <span class="block" :class="(hero.highlightLast && li===hero.titleLines.length-1) ? 'text-blue-600' : ''" x-text="ln"></span>
+                </template>
+              </h1>
+              <p class="text-[14px] text-gray-500 leading-relaxed whitespace-pre-line mb-7" x-text="hero.description"></p>
+              <button @click="navigate('dashboard')" class="btn btn-primary">
+                사전 준비 사항 확인하기
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
             </div>
           </div>
 
@@ -161,14 +165,6 @@
           <template x-if="dir.enabled">
             <div class="card p-6 lg:p-7 fu d2">
               <h2 class="text-[17px] font-extrabold text-gray-900 mb-5" x-text="dir.title || '오시는 길'"></h2>
-
-              <div class="flex items-center gap-2.5 mb-4">
-                <div class="ic" x-html="icon('pin', 19)"></div>
-                <div class="min-w-0">
-                  <div class="text-[14px] font-bold text-gray-900" x-text="dir.placeName || '교육 장소'"></div>
-                  <div x-show="dir.placeDetail" class="text-[12px] text-gray-500 mt-0.5" x-text="dir.placeDetail"></div>
-                </div>
-              </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- 지도 -->
