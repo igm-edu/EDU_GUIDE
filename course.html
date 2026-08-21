@@ -43,7 +43,9 @@
 
     .ic{width:38px;height:38px;border-radius:11px;background:#EAF1FE;color:#2563EB;
         display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .rowic{width:26px;height:26px;border-radius:8px;color:#7C93B5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    /* 첫 줄 텍스트(13px × 1.6 ≒ 21px)와 세로 중심을 맞춘 아이콘 박스 */
+    .rowic{width:20px;height:21px;color:#7C93B5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .rowtx{font-size:13px;line-height:1.6}
 
     .stepcard{background:#fff;border:1px solid #E8EDF5;border-radius:18px;box-shadow:0 2px 14px rgba(23,43,77,.04);
               display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s}
@@ -110,10 +112,10 @@
               <div class="space-y-3.5">
                 <template x-for="(r, ri) in g.rows" :key="ri">
                   <div class="flex gap-2.5 items-start">
-                    <div class="rowic mt-0.5" x-html="icon(r.icon || 'check', 16)"></div>
+                    <div class="rowic" x-html="icon(r.icon || 'check', 16)"></div>
                     <div class="flex-1 min-w-0 flex flex-wrap gap-x-3 gap-y-0.5">
-                      <span x-show="r.label" class="text-[13px] font-bold text-gray-800 w-[68px] flex-shrink-0" x-text="r.label"></span>
-                      <span class="text-[13px] text-gray-600 leading-relaxed flex-1 min-w-[120px] whitespace-pre-line" x-text="r.value"></span>
+                      <span x-show="r.label" class="rowtx font-bold text-gray-800 w-[64px] flex-shrink-0" x-text="r.label"></span>
+                      <span class="rowtx text-gray-600 flex-1 min-w-[120px] whitespace-pre-line" x-text="r.value"></span>
                       <template x-if="r.linkUrl">
                         <a :href="r.linkUrl" target="_blank" rel="noopener" class="text-[12px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md transition-colors self-start">
                           <span x-text="r.linkLabel || '링크'"></span> ↗
@@ -189,18 +191,20 @@
                 <div class="space-y-2.5">
                   <template x-for="(t, ti) in dir.transit.filter(x => x.label || x.value)" :key="ti">
                     <div class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
-                      <div class="rowic mt-0.5" x-html="icon(t.icon || 'subway', 17)"></div>
+                      <div class="rowic mt-[1px]" x-html="icon(t.icon || 'subway', 17)"></div>
                       <div class="min-w-0 flex-1">
                         <div class="text-[12px] font-bold text-gray-800" x-text="t.label"></div>
                         <div class="text-[12px] text-gray-500 leading-relaxed whitespace-pre-line" x-text="t.value"></div>
                       </div>
                     </div>
                   </template>
-                  <div x-show="dir.address" class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
-                    <div class="rowic mt-0.5" x-html="icon('pin', 17)"></div>
+                  <div x-show="dir.address || dir.placeName" class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
+                    <div class="rowic mt-[1px]" x-html="icon('pin', 17)"></div>
                     <div class="min-w-0 flex-1">
                       <div class="text-[12px] font-bold text-gray-800">주소</div>
-                      <div class="text-[12px] text-gray-500 leading-relaxed" x-text="dir.address"></div>
+                      <div x-show="dir.address" class="text-[12px] text-gray-500 leading-relaxed" x-text="dir.address"></div>
+                      <div x-show="dir.placeName" class="text-[12px] font-semibold text-gray-700 leading-relaxed mt-1" x-text="dir.placeName"></div>
+                      <div x-show="dir.placeDetail" class="text-[11px] text-gray-400 leading-relaxed" x-text="dir.placeDetail"></div>
                     </div>
                   </div>
                 </div>
