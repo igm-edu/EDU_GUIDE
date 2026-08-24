@@ -103,11 +103,29 @@
 
   <!-- ═══════════ LANDING ═══════════ -->
   <main x-show="screen==='landing'" class="pt-16 min-h-screen">
-    <div class="max-w-6xl mx-auto px-6 py-10">
-      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] gap-5 items-start">
+    <div class="max-w-4xl mx-auto px-6 py-10 space-y-5">
 
-        <!-- 좌: 안내 그룹 -->
-        <div class="card p-6 fu d1 order-2 lg:order-1">
+      <!-- 1. HERO -->
+      <div class="card p-8 lg:p-10 fu overflow-hidden relative">
+        <div x-show="hero.illust" class="hero-bg hidden sm:block" x-html="illust(hero.illust)" aria-hidden="true"></div>
+        <div class="relative z-10">
+          <div x-show="hero.badge" class="badge mb-5" x-text="hero.badge"></div>
+          <h1 class="text-[2rem] lg:text-[2.35rem] font-extrabold text-gray-900 leading-[1.28] mb-4">
+            <template x-for="(ln, li) in hero.titleLines" :key="li">
+              <span class="block" :class="(hero.highlightLast && li===hero.titleLines.length-1) ? 'text-blue-600' : ''" x-text="ln"></span>
+            </template>
+          </h1>
+          <p class="text-[14px] text-gray-500 leading-relaxed whitespace-pre-line mb-7" x-text="hero.description"></p>
+          <button @click="navigate('dashboard')" class="btn btn-primary">
+            사전 준비 사항 확인하기
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. 교육 안내 -->
+      <template x-if="infoGroups().length">
+        <div class="card p-6 lg:p-7 fu d1">
           <template x-for="(g, gi) in infoGroups()" :key="gi">
             <div :class="gi > 0 ? 'mt-7 pt-7 border-t border-[#EDF1F7]' : ''">
               <div class="flex items-center gap-2.5 mb-4">
@@ -119,8 +137,8 @@
                   <div class="flex gap-2.5 items-start">
                     <div class="rowic" x-html="icon(r.icon || 'check', 16)"></div>
                     <div class="flex-1 min-w-0 flex flex-wrap gap-x-3 gap-y-0.5">
-                      <span x-show="r.label" class="rowtx font-bold text-gray-800 w-[64px] flex-shrink-0" x-text="r.label"></span>
-                      <span class="rowtx text-gray-600 flex-1 min-w-[120px] whitespace-pre-line" x-text="r.value"></span>
+                      <span x-show="r.label" class="rowtx font-bold text-gray-800 w-[72px] flex-shrink-0" x-text="r.label"></span>
+                      <span class="rowtx text-gray-600 flex-1 min-w-[160px] whitespace-pre-line" x-text="r.value"></span>
                       <template x-if="r.linkUrl">
                         <a :href="r.linkUrl" target="_blank" rel="noopener" class="text-[12px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md transition-colors self-start">
                           <span x-text="r.linkLabel || '링크'"></span> ↗
@@ -136,85 +154,113 @@
               </div>
             </div>
           </template>
-          <div x-show="infoGroups().length===0" class="text-center text-sm text-gray-400 py-8">교육 안내가 아직 등록되지 않았습니다.</div>
         </div>
+      </template>
 
-        <!-- 우: HERO + 오시는 길 -->
-        <div class="space-y-5 order-1 lg:order-2">
+      <!-- 3. 오시는 길 -->
+      <template x-if="dir.enabled">
+        <div class="card p-6 lg:p-7 fu d2">
+          <h2 class="text-[17px] font-extrabold text-gray-900 mb-5" x-text="dir.title || '오시는 길'"></h2>
 
-          <!-- HERO -->
-          <div class="card p-8 lg:p-10 fu overflow-hidden relative">
-            <div x-show="hero.illust" class="hero-bg hidden sm:block" x-html="illust(hero.illust)" aria-hidden="true"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 지도 -->
+            <div>
+              <div x-show="mapReady" id="kakaomap"></div>
+              <template x-if="!mapReady">
+                <a :href="mapHref()" :target="mapHref()!=='#' ? '_blank' : '_self'" rel="noopener"
+                   class="soft flex flex-col items-center justify-center gap-2 py-9 text-center hover:border-blue-200 transition-colors"
+                   :class="mapHref()==='#' ? 'pointer-events-none' : ''">
+                  <div class="ic" x-html="icon('pin', 19)"></div>
+                  <span class="text-[13px] font-bold text-gray-700" x-text="dir.address || '주소 미등록'"></span>
+                  <span x-show="mapHref()!=='#'" class="text-[12px] font-bold text-blue-600">지도 보기 ↗</span>
+                </a>
+              </template>
+              <a x-show="mapReady && mapHref()!=='#'" :href="mapHref()" target="_blank" rel="noopener"
+                 class="mt-2 inline-flex text-[12px] font-bold text-blue-600 hover:text-blue-800">큰 지도로 보기 ↗</a>
+            </div>
 
-            <div class="relative z-10">
-              <div x-show="hero.badge" class="badge mb-5" x-text="hero.badge"></div>
-              <h1 class="text-[2rem] lg:text-[2.35rem] font-extrabold text-gray-900 leading-[1.28] mb-4">
-                <template x-for="(ln, li) in hero.titleLines" :key="li">
-                  <span class="block" :class="(hero.highlightLast && li===hero.titleLines.length-1) ? 'text-blue-600' : ''" x-text="ln"></span>
-                </template>
-              </h1>
-              <p class="text-[14px] text-gray-500 leading-relaxed whitespace-pre-line mb-7" x-text="hero.description"></p>
-              <button @click="navigate('dashboard')" class="btn btn-primary">
-                사전 준비 사항 확인하기
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
+            <!-- 교통편 -->
+            <div class="space-y-2.5">
+              <template x-for="(t, ti) in dir.transit.filter(x => x.label || x.value)" :key="ti">
+                <div class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
+                  <div class="rowic mt-[1px]" x-html="icon(t.icon || 'subway', 17)"></div>
+                  <div class="min-w-0 flex-1">
+                    <div class="text-[12px] font-bold text-gray-800" x-text="t.label"></div>
+                    <div class="text-[12px] text-gray-500 leading-relaxed whitespace-pre-line" x-text="t.value"></div>
+                  </div>
+                </div>
+              </template>
+              <div x-show="dir.address || dir.placeName" class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
+                <div class="rowic mt-[1px]" x-html="icon('pin', 17)"></div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-[12px] font-bold text-gray-800">주소</div>
+                  <div x-show="dir.address" class="text-[12px] text-gray-500 leading-relaxed" x-text="dir.address"></div>
+                  <div x-show="dir.placeName" class="text-[12px] font-semibold text-gray-700 leading-relaxed mt-1" x-text="dir.placeName"></div>
+                  <div x-show="dir.placeDetail" class="text-[11px] text-gray-400 leading-relaxed" x-text="dir.placeDetail"></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- 오시는 길 -->
-          <template x-if="dir.enabled">
-            <div class="card p-6 lg:p-7 fu d2">
-              <h2 class="text-[17px] font-extrabold text-gray-900 mb-5" x-text="dir.title || '오시는 길'"></h2>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- 지도 -->
-                <div>
-                  <div x-show="mapReady" id="kakaomap"></div>
-                  <template x-if="!mapReady">
-                    <a :href="mapHref()" :target="mapHref()!=='#' ? '_blank' : '_self'" rel="noopener"
-                       class="soft flex flex-col items-center justify-center gap-2 py-9 text-center hover:border-blue-200 transition-colors"
-                       :class="mapHref()==='#' ? 'pointer-events-none' : ''">
-                      <div class="ic" x-html="icon('pin', 19)"></div>
-                      <span class="text-[13px] font-bold text-gray-700" x-text="dir.address || '주소 미등록'"></span>
-                      <span x-show="mapHref()!=='#'" class="text-[12px] font-bold text-blue-600">지도 보기 ↗</span>
-                    </a>
-                  </template>
-                  <a x-show="mapReady && mapHref()!=='#'" :href="mapHref()" target="_blank" rel="noopener"
-                     class="mt-2 inline-flex text-[12px] font-bold text-blue-600 hover:text-blue-800">큰 지도로 보기 ↗</a>
-                </div>
-
-                <!-- 교통편 -->
-                <div class="space-y-2.5">
-                  <template x-for="(t, ti) in dir.transit.filter(x => x.label || x.value)" :key="ti">
-                    <div class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
-                      <div class="rowic mt-[1px]" x-html="icon(t.icon || 'subway', 17)"></div>
-                      <div class="min-w-0 flex-1">
-                        <div class="text-[12px] font-bold text-gray-800" x-text="t.label"></div>
-                        <div class="text-[12px] text-gray-500 leading-relaxed whitespace-pre-line" x-text="t.value"></div>
-                      </div>
-                    </div>
-                  </template>
-                  <div x-show="dir.address || dir.placeName" class="soft px-3.5 py-2.5 flex gap-2.5 items-start">
-                    <div class="rowic mt-[1px]" x-html="icon('pin', 17)"></div>
-                    <div class="min-w-0 flex-1">
-                      <div class="text-[12px] font-bold text-gray-800">주소</div>
-                      <div x-show="dir.address" class="text-[12px] text-gray-500 leading-relaxed" x-text="dir.address"></div>
-                      <div x-show="dir.placeName" class="text-[12px] font-semibold text-gray-700 leading-relaxed mt-1" x-text="dir.placeName"></div>
-                      <div x-show="dir.placeDetail" class="text-[11px] text-gray-400 leading-relaxed" x-text="dir.placeDetail"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div x-show="dir.note" class="note mt-4">
-                <svg width="15" height="15" fill="none" stroke="#8CA3C4" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <span x-text="dir.note"></span>
-              </div>
-            </div>
-          </template>
-
+          <div x-show="dir.note" class="note mt-4">
+            <svg width="15" height="15" fill="none" stroke="#8CA3C4" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span x-text="dir.note"></span>
+          </div>
         </div>
-      </div>
+      </template>
+
+      <!-- 4. 커리큘럼 -->
+      <template x-if="cur.enabled && cur.rows.length">
+        <div class="card p-6 lg:p-7 fu d3">
+          <h2 class="text-[17px] font-extrabold text-gray-900 mb-5" x-text="cur.title || '커리큘럼'"></h2>
+
+          <!-- 표 (태블릿 이상) -->
+          <div class="hidden sm:block overflow-x-auto">
+            <table class="w-full text-left" style="border-collapse:separate;border-spacing:0">
+              <thead>
+                <tr>
+                  <template x-for="(c, ci) in cur.columns" :key="ci">
+                    <th class="text-[12px] font-extrabold text-gray-500 bg-[#F4F7FD] px-4 py-3 border-b border-[#E4EBF6] whitespace-nowrap"
+                        :class="ci===0 ? 'rounded-l-lg' : (ci===cur.columns.length-1 ? 'rounded-r-lg' : '')"
+                        x-text="c"></th>
+                  </template>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(row, ri) in cur.rows" :key="ri">
+                  <tr class="align-top">
+                    <template x-for="(cell, ci) in row" :key="ci">
+                      <td class="px-4 py-3 border-b border-[#EDF1F7] text-[13px] leading-relaxed whitespace-pre-line"
+                          :class="ci===0 ? 'font-bold text-gray-800 whitespace-nowrap w-[132px]' : (ci===1 ? 'font-semibold text-gray-800 w-[150px]' : 'text-gray-600')"
+                          x-text="cell"></td>
+                    </template>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 카드형 (모바일) -->
+          <div class="sm:hidden space-y-2.5">
+            <template x-for="(row, ri) in cur.rows" :key="ri">
+              <div class="soft px-3.5 py-3">
+                <template x-for="(cell, ci) in row" :key="ci">
+                  <div x-show="cell" class="flex gap-2 items-start" :class="ci>0 ? 'mt-1' : ''">
+                    <span class="text-[11px] font-bold text-gray-400 w-[46px] flex-shrink-0 mt-0.5" x-text="cur.columns[ci]"></span>
+                    <span class="text-[13px] text-gray-700 leading-relaxed whitespace-pre-line flex-1" x-text="cell"></span>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <div x-show="cur.note" class="note mt-4">
+            <svg width="15" height="15" fill="none" stroke="#8CA3C4" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span x-text="cur.note"></span>
+          </div>
+        </div>
+      </template>
+
     </div>
   </main>
 
@@ -410,6 +456,7 @@ function app() {
     CONFIG:{ courseName:'', previewUrl:'', autoUrl:'', startUrl:'' },
     hero: OnboardingAPI.normHero(null, ''),
     dir:  OnboardingAPI.normDirections(null),
+    cur:  OnboardingAPI.normCurriculum(null),
     info: { groups: [] },
     _key: 'onboarding_progress_' + (slug || 'default'),
     progress:{},
@@ -432,6 +479,7 @@ function app() {
       this.hero  = OnboardingAPI.normHero(course.hero, course.courseName);
       this.info  = OnboardingAPI.normInfo(course.info);
       this.dir   = OnboardingAPI.normDirections(course.directions);
+      this.cur   = OnboardingAPI.normCurriculum(course.curriculum);
       this.STEPS = OnboardingAPI.buildSteps(course);
       this.FAQ_ITEMS = (Array.isArray(course.faq) && course.faq.length) ? course.faq : (store.defaultFaq || []);
 

@@ -122,6 +122,25 @@
     };
   }
 
+  /* 커리큘럼 — 열 이름과 행을 자유롭게 구성 */
+  function normCurriculum(c) {
+    c = c || {};
+    let cols = Array.isArray(c.columns) ? c.columns.map(x => String(x || '')) : [];
+    if (!cols.length) cols = ['시간', '모듈', '내용'];
+    const rows = (Array.isArray(c.rows) ? c.rows : []).map(r => {
+      const arr = Array.isArray(r) ? r.map(x => String(x || '')) : [];
+      while (arr.length < cols.length) arr.push('');   // 열 개수에 맞춰 보정
+      return arr.slice(0, cols.length);
+    });
+    return {
+      enabled: c.enabled !== undefined ? !!c.enabled : false,
+      title: c.title || '커리큘럼',
+      columns: cols,
+      rows: rows,
+      note: c.note || ''
+    };
+  }
+
   /* 오시는 길 */
   function normDirections(d) {
     d = d || {};
@@ -167,6 +186,7 @@
       hero: normHero(course.hero, course.courseName),
       info: normInfo(course.info),
       directions: normDirections(course.directions),
+      curriculum: normCurriculum(course.curriculum),
       steps: steps,
       faq: Array.isArray(course.faq) ? course.faq.map(f => ({ q: f.q || '', a: f.a || '' })) : []
     };
@@ -202,6 +222,19 @@
   function blankInfoRow() { return { icon: '', label: '', value: '', linkLabel: '', linkUrl: '' }; }
   function blankInfoGroup() { return { icon: 'info', title: '새 그룹', rows: [blankInfoRow()], note: '' }; }
   function blankTransit() { return { icon: 'subway', label: '', value: '' }; }
+  function sampleCurriculum() {
+    return {
+      enabled: true, title: '커리큘럼', note: '',
+      columns: ['시간', '모듈', '내용'],
+      rows: [
+        ['08:30 ~ 09:00', '등록',        '입실 및 좌석 배정'],
+        ['09:00 ~ 10:30', '오리엔테이션', '과정 소개와 학습 목표 확인'],
+        ['10:45 ~ 12:00', '모듈 1',      '클로드 기본 사용법 실습'],
+        ['13:00 ~ 15:00', '모듈 2',      '업무 자동화 사례 실습'],
+        ['15:15 ~ 17:30', '모듈 3',      '내 업무에 적용하기 워크숍']
+      ]
+    };
+  }
 
   // 예시 불러오기용 기본 안내 서식 (그룹 구조)
   function sampleInfo() {
@@ -340,7 +373,8 @@
   window.OnboardingAPI = {
     load, save, saveCourse, deleteCourse, buildSteps, normalizeImg, migrateStore, migrateCourse,
     blankStep, blankTask, blankInfoRow, blankInfoGroup, blankTransit,
-    sampleInfo, sampleDirections, normInfo, normHero, normDirections,
+    sampleInfo, sampleDirections, sampleCurriculum,
+    normInfo, normHero, normDirections, normCurriculum,
     readCache, writeCache, seedStore, exportDataJs, isEmptyStore,
     isRemote: !!CFG.apiUrl, config: CFG, seed: SEED
   };

@@ -431,6 +431,87 @@
         </div>
       </div>
 
+      <!-- 커리큘럼 -->
+      <div class="card p-6 mb-5">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-sm font-extrabold text-gray-900">커리큘럼</h2>
+          <div class="flex items-center gap-2">
+            <button @click="loadSampleCurriculum()" class="text-xs font-semibold text-blue-600 hover:text-blue-800">예시 불러오기</button>
+            <button type="button" @click="form.curriculum.enabled = !form.curriculum.enabled"
+                    class="w-10 h-6 rounded-full transition-colors flex items-center px-0.5"
+                    :class="form.curriculum.enabled ? 'bg-blue-600 justify-end' : 'bg-gray-300 justify-start'">
+              <span class="w-5 h-5 bg-white rounded-full shadow"></span>
+            </button>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mb-5" x-text="form.curriculum.enabled ? '메인 화면 맨 아래에 표로 표시됩니다.' : '꺼져 있어 표시되지 않습니다.'"></p>
+
+        <div x-show="form.curriculum.enabled" class="space-y-4">
+          <div>
+            <label class="lbl">제목</label>
+            <input type="text" x-model="form.curriculum.title" class="inp" placeholder="커리큘럼">
+          </div>
+
+          <!-- 열 이름 -->
+          <div>
+            <label class="lbl">열 구성</label>
+            <div class="flex flex-wrap gap-2">
+              <template x-for="(c, ci) in form.curriculum.columns" :key="ci">
+                <div class="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg pl-2 pr-1 py-1">
+                  <input type="text" x-model="form.curriculum.columns[ci]" class="bg-transparent text-xs font-bold text-gray-700 w-20 focus:outline-none" placeholder="열 이름">
+                  <button type="button" @click="removeCurColumn(ci)" class="text-red-400 hover:text-red-600 px-1" title="열 삭제">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+              </template>
+              <button type="button" @click="addCurColumn()" class="btn-ghost !text-blue-600 hover:!bg-blue-50 text-xs !py-1">+ 열 추가</button>
+            </div>
+          </div>
+
+          <!-- 행 -->
+          <div>
+            <label class="lbl">내용</label>
+            <div class="space-y-2">
+              <template x-for="(row, ri) in form.curriculum.rows" :key="ri">
+                <div class="bg-gray-50/60 border border-gray-100 rounded-xl p-2.5">
+                  <div class="flex gap-2 items-start">
+                    <span class="w-6 h-6 mt-1 flex-shrink-0 rounded-full bg-blue-100 text-blue-600 text-[11px] font-bold flex items-center justify-center" x-text="ri+1"></span>
+                    <div class="flex-1 min-w-0 space-y-1.5">
+                      <template x-for="(c, ci) in form.curriculum.columns" :key="ci">
+                        <div class="flex gap-1.5 items-start">
+                          <span class="text-[11px] font-bold text-gray-400 w-14 flex-shrink-0 mt-2" x-text="c || ('열'+(ci+1))"></span>
+                          <textarea x-model="form.curriculum.rows[ri][ci]" rows="1" class="inp !py-1.5 flex-1 resize-none text-xs" :placeholder="c"></textarea>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="flex flex-col gap-0.5 flex-shrink-0">
+                      <button type="button" @click="moveCurRow(ri,-1)" :disabled="ri===0" class="btn-ghost !px-1.5 !py-1 disabled:opacity-30" title="위로">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+                      </button>
+                      <button type="button" @click="moveCurRow(ri,1)" :disabled="ri===form.curriculum.rows.length-1" class="btn-ghost !px-1.5 !py-1 disabled:opacity-30" title="아래로">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                      </button>
+                      <button type="button" @click="form.curriculum.rows.splice(ri,1)" class="btn-ghost !text-red-400 hover:!bg-red-50 !px-1.5 !py-1" title="행 삭제">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+            <button type="button" @click="addCurRow()" class="btn-outline w-full justify-center mt-3 !py-2.5">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              행 추가
+            </button>
+          </div>
+
+          <div>
+            <label class="lbl">하단 안내문 (선택)</label>
+            <input type="text" x-model="form.curriculum.note" class="inp" placeholder="세부 일정은 현장 상황에 따라 변경될 수 있습니다.">
+          </div>
+        </div>
+      </div>
+
       <!-- 단계 문구·이미지 -->
       <div class="card p-6 mb-5">
         <h2 class="text-sm font-extrabold text-gray-900 mb-1">단계별 안내 문구 · 이미지</h2>
@@ -623,6 +704,11 @@ function cloneHero(h, courseName) {
   return { badge: x.badge, titleLines: x.titleLines.slice(), highlightLast: x.highlightLast, description: x.description, illust: x.illust };
 }
 
+function cloneCur(c) {
+  const x = OnboardingAPI.normCurriculum(c);
+  return { enabled: x.enabled, title: x.title, columns: x.columns.slice(), rows: x.rows.map(r => r.slice()), note: x.note };
+}
+
 function cloneDir(d) {
   const x = OnboardingAPI.normDirections(d);
   return {
@@ -640,6 +726,7 @@ function blankCourse(store) {
     hero: cloneHero(null, ''),
     info: cloneInfo(null),
     directions: cloneDir(null),
+    curriculum: cloneCur(null),
     steps: (store.defaultSteps || []).map(cloneStep),
     faq: []
   };
@@ -654,6 +741,7 @@ function toForm(course) {
     hero: cloneHero(course.hero, course.courseName),
     info: cloneInfo(course.info),
     directions: cloneDir(course.directions),
+    curriculum: cloneCur(course.curriculum),
     steps: (course.steps || []).map(cloneStep),
     faq: Array.isArray(course.faq) ? course.faq.map(f => ({ q: f.q || '', a: f.a || '' })) : []
   };
@@ -700,6 +788,15 @@ function fromForm(form) {
         .map(t => ({ icon: t.icon || 'subway', label: (t.label || '').trim(), value: (t.value || '').trim() }))
         .filter(t => t.label || t.value),
       note: (form.directions?.note || '').trim()
+    },
+    curriculum: {
+      enabled: !!form.curriculum?.enabled,
+      title: (form.curriculum?.title || '').trim() || '커리큘럼',
+      columns: (form.curriculum?.columns || []).map(c => (c || '').trim()).filter(Boolean),
+      rows: (form.curriculum?.rows || [])
+        .map(r => (r || []).map(c => (c || '').trim()))
+        .filter(r => r.some(Boolean)),
+      note: (form.curriculum?.note || '').trim()
     },
     steps: (form.steps || []).map(s => ({
       title: (s.title || '').trim(),
@@ -830,6 +927,31 @@ function hub() {
       this.form.info = cloneInfo(OnboardingAPI.sampleInfo());
       this.showToast('예시 서식을 불러왔습니다.');
     },
+    // ── 커리큘럼 ──
+    addCurRow() {
+      this.form.curriculum.rows.push(this.form.curriculum.columns.map(() => ''));
+    },
+    moveCurRow(ri, dir) {
+      const ni = ri + dir, arr = this.form.curriculum.rows;
+      if (ni < 0 || ni >= arr.length) return;
+      [arr[ri], arr[ni]] = [arr[ni], arr[ri]];
+    },
+    addCurColumn() {
+      this.form.curriculum.columns.push('새 열');
+      this.form.curriculum.rows.forEach(r => r.push(''));   // 모든 행에 빈 칸 추가
+    },
+    removeCurColumn(ci) {
+      if (this.form.curriculum.columns.length <= 1) { this.showToast('최소 1개 열이 필요합니다.', true); return; }
+      if (!confirm(`"${this.form.curriculum.columns[ci] || '이 열'}" 열을 삭제할까요? 입력한 내용도 함께 지워집니다.`)) return;
+      this.form.curriculum.columns.splice(ci, 1);
+      this.form.curriculum.rows.forEach(r => r.splice(ci, 1));
+    },
+    loadSampleCurriculum() {
+      if ((this.form.curriculum.rows || []).length && !confirm('현재 커리큘럼 내용을 예시로 교체할까요?')) return;
+      this.form.curriculum = cloneCur(OnboardingAPI.sampleCurriculum());
+      this.showToast('예시를 불러왔습니다.');
+    },
+
     loadSampleDirections() {
       if (!confirm('오시는 길 내용을 예시로 교체할까요?')) return;
       this.form.directions = cloneDir(OnboardingAPI.sampleDirections());
