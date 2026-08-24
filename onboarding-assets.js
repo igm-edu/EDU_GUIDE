@@ -7,98 +7,158 @@
    ============================================================================ */
 (function () {
 
-  /* ── 일러스트 (약 200x120 기준, 파란 계열) ── */
+  /* ════════════════════════════════════════════════════════════════
+     테마 색상 — 기준색 1개로 밝기 단계(50~800)를 자동 생성합니다.
+     과정마다 다른 색을 쓸 수 있고, 일러스트·버튼·아이콘이 함께 따라갑니다.
+     ════════════════════════════════════════════════════════════════ */
+  const THEME_PRESETS = [
+    { key: 'blue',    label: '블루',   hex: '#2563EB' },
+    { key: 'indigo',  label: '인디고', hex: '#4F46E5' },
+    { key: 'violet',  label: '바이올렛', hex: '#7C3AED' },
+    { key: 'teal',    label: '틸',     hex: '#0D9488' },
+    { key: 'emerald', label: '그린',   hex: '#059669' },
+    { key: 'amber',   label: '앰버',   hex: '#D97706' },
+    { key: 'rose',    label: '로즈',   hex: '#E11D48' },
+    { key: 'slate',   label: '네이비', hex: '#334E68' }
+  ];
+  const DEFAULT_THEME = '#2563EB';
+
+  function normHex(hex) {
+    hex = String(hex || '').trim();
+    if (/^[0-9a-f]{6}$/i.test(hex)) hex = '#' + hex;
+    if (/^#[0-9a-f]{3}$/i.test(hex)) hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+    return /^#[0-9a-f]{6}$/i.test(hex) ? hex.toUpperCase() : '';
+  }
+  function toRgb(hex) {
+    const h = normHex(hex) || DEFAULT_THEME;
+    return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  }
+  function toHex(rgb) {
+    return '#' + rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase();
+  }
+  // t>0 : 흰색과 섞기(밝게) / t<0 : 검정과 섞기(어둡게)
+  function mix(rgb, t) {
+    const target = t >= 0 ? 255 : 0, k = Math.abs(t);
+    return rgb.map(v => v + (target - v) * k);
+  }
+
+  // 기준색(600 위치)에서 전체 단계 생성
+  function makeRamp(hex) {
+    const base = toRgb(hex);
+    return {
+      '--b50':  toHex(mix(base, 0.94)),
+      '--b100': toHex(mix(base, 0.86)),
+      '--b200': toHex(mix(base, 0.72)),
+      '--b300': toHex(mix(base, 0.52)),
+      '--b400': toHex(mix(base, 0.28)),
+      '--b500': toHex(mix(base, 0.12)),
+      '--b600': toHex(base),
+      '--b700': toHex(mix(base, -0.14)),
+      '--b800': toHex(mix(base, -0.32)),
+      '--b-shadow': 'rgba(' + base.map(v => Math.round(v)).join(',') + ',.26)'
+    };
+  }
+
+  // 지정 요소(기본: :root)에 테마 적용
+  function applyTheme(hex, el) {
+    const ramp = makeRamp(normHex(hex) || DEFAULT_THEME);
+    const target = el || document.documentElement;
+    Object.keys(ramp).forEach(k => target.style.setProperty(k, ramp[k]));
+    return ramp;
+  }
+
+  /* ── 일러스트 (약 200x120 기준, 테마 색상을 따름) ── */
   const ILLUST = {
     install: {
       label: '설치 · 다운로드',
       svg: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="108" rx="62" ry="7" fill="#EFF6FF"/>
-        <path d="M62 44a20 20 0 0 1 38-8 16 16 0 0 1 26 10 15 15 0 0 1-3 30H70a18 18 0 0 1-8-32z" fill="#DBEAFE"/>
-        <rect x="58" y="52" width="84" height="52" rx="8" fill="#fff" stroke="#BFDBFE" stroke-width="2"/>
-        <rect x="68" y="63" width="34" height="5" rx="2.5" fill="#DBEAFE"/>
-        <rect x="68" y="74" width="52" height="5" rx="2.5" fill="#EFF6FF"/>
-        <rect x="68" y="85" width="26" height="5" rx="2.5" fill="#EFF6FF"/>
-        <circle cx="128" cy="86" r="15" fill="#2563EB"/>
+        <ellipse cx="100" cy="108" rx="62" ry="7" fill="var(--b50)"/>
+        <path d="M62 44a20 20 0 0 1 38-8 16 16 0 0 1 26 10 15 15 0 0 1-3 30H70a18 18 0 0 1-8-32z" fill="var(--b100)"/>
+        <rect x="58" y="52" width="84" height="52" rx="8" fill="#fff" stroke="var(--b200)" stroke-width="2"/>
+        <rect x="68" y="63" width="34" height="5" rx="2.5" fill="var(--b100)"/>
+        <rect x="68" y="74" width="52" height="5" rx="2.5" fill="var(--b50)"/>
+        <rect x="68" y="85" width="26" height="5" rx="2.5" fill="var(--b50)"/>
+        <circle cx="128" cy="86" r="15" fill="var(--b600)"/>
         <path d="M128 79v13m0 0 5-5m-5 5-5-5" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="47" cy="40" r="4" fill="#BFDBFE"/><circle cx="158" cy="34" r="3" fill="#DBEAFE"/>
+        <circle cx="47" cy="40" r="4" fill="var(--b200)"/><circle cx="158" cy="34" r="3" fill="var(--b100)"/>
       </svg>`
     },
     chat: {
       label: '채팅 · 커뮤니티',
       svg: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="108" rx="62" ry="7" fill="#EFF6FF"/>
-        <path d="M52 34h74a10 10 0 0 1 10 10v30a10 10 0 0 1-10 10H82l-18 15V84h-12a10 10 0 0 1-10-10V44a10 10 0 0 1 10-10z" fill="#2563EB"/>
+        <ellipse cx="100" cy="108" rx="62" ry="7" fill="var(--b50)"/>
+        <path d="M52 34h74a10 10 0 0 1 10 10v30a10 10 0 0 1-10 10H82l-18 15V84h-12a10 10 0 0 1-10-10V44a10 10 0 0 1 10-10z" fill="var(--b600)"/>
         <circle cx="76" cy="59" r="5" fill="#fff"/><circle cx="94" cy="59" r="5" fill="#fff"/><circle cx="112" cy="59" r="5" fill="#fff"/>
-        <circle cx="146" cy="72" r="12" fill="#BFDBFE"/><circle cx="146" cy="67" r="5" fill="#fff"/>
+        <circle cx="146" cy="72" r="12" fill="var(--b200)"/><circle cx="146" cy="67" r="5" fill="#fff"/>
         <ellipse cx="146" cy="80" rx="8" ry="6" fill="#fff"/>
-        <circle cx="60" cy="26" r="3.5" fill="#DBEAFE"/><circle cx="160" cy="40" r="4" fill="#DBEAFE"/>
+        <circle cx="60" cy="26" r="3.5" fill="var(--b100)"/><circle cx="160" cy="40" r="4" fill="var(--b100)"/>
       </svg>`
     },
     survey: {
       label: '설문 · 체크리스트',
       svg: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="108" rx="62" ry="7" fill="#EFF6FF"/>
-        <rect x="64" y="24" width="72" height="80" rx="9" fill="#fff" stroke="#BFDBFE" stroke-width="2"/>
-        <rect x="86" y="18" width="28" height="12" rx="6" fill="#93C5FD"/>
-        <rect x="76" y="46" width="12" height="12" rx="3" fill="#DBEAFE"/>
-        <path d="M79 52.2l2.4 2.4 4.2-4.6" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="94" y="49" width="30" height="5" rx="2.5" fill="#EFF6FF"/>
-        <rect x="76" y="66" width="12" height="12" rx="3" fill="#DBEAFE"/>
-        <path d="M79 72.2l2.4 2.4 4.2-4.6" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="94" y="69" width="24" height="5" rx="2.5" fill="#EFF6FF"/>
-        <rect x="76" y="86" width="12" height="12" rx="3" fill="#fff" stroke="#93C5FD" stroke-width="2"/>
-        <rect x="94" y="89" width="30" height="5" rx="2.5" fill="#EFF6FF"/>
-        <path d="M138 74l14-14 8 8-14 14-10 2z" fill="#2563EB"/>
-        <circle cx="52" cy="40" r="4" fill="#DBEAFE"/>
+        <ellipse cx="100" cy="108" rx="62" ry="7" fill="var(--b50)"/>
+        <rect x="64" y="24" width="72" height="80" rx="9" fill="#fff" stroke="var(--b200)" stroke-width="2"/>
+        <rect x="86" y="18" width="28" height="12" rx="6" fill="var(--b300)"/>
+        <rect x="76" y="46" width="12" height="12" rx="3" fill="var(--b100)"/>
+        <path d="M79 52.2l2.4 2.4 4.2-4.6" stroke="var(--b600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="94" y="49" width="30" height="5" rx="2.5" fill="var(--b50)"/>
+        <rect x="76" y="66" width="12" height="12" rx="3" fill="var(--b100)"/>
+        <path d="M79 72.2l2.4 2.4 4.2-4.6" stroke="var(--b600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="94" y="69" width="24" height="5" rx="2.5" fill="var(--b50)"/>
+        <rect x="76" y="86" width="12" height="12" rx="3" fill="#fff" stroke="var(--b300)" stroke-width="2"/>
+        <rect x="94" y="89" width="30" height="5" rx="2.5" fill="var(--b50)"/>
+        <path d="M138 74l14-14 8 8-14 14-10 2z" fill="var(--b600)"/>
+        <circle cx="52" cy="40" r="4" fill="var(--b100)"/>
       </svg>`
     },
     graduation: {
       label: '학사모 · 교육',
       svg: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="108" rx="62" ry="7" fill="#EFF6FF"/>
-        <rect x="56" y="52" width="88" height="52" rx="8" fill="#fff" stroke="#BFDBFE" stroke-width="2"/>
-        <rect x="68" y="64" width="12" height="12" rx="3" fill="#DBEAFE"/>
-        <path d="M71 70.2l2.4 2.4 4.2-4.6" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="86" y="67" width="44" height="5" rx="2.5" fill="#EFF6FF"/>
-        <rect x="68" y="84" width="12" height="12" rx="3" fill="#DBEAFE"/>
-        <path d="M71 90.2l2.4 2.4 4.2-4.6" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="86" y="87" width="34" height="5" rx="2.5" fill="#EFF6FF"/>
-        <path d="M100 16l40 16-40 16-40-16 40-16z" fill="#2563EB"/>
-        <path d="M78 40v12c0 6 10 10 22 10s22-4 22-10V40l-22 9-22-9z" fill="#3B82F6"/>
-        <path d="M140 32v16" stroke="#1D4ED8" stroke-width="2.4" stroke-linecap="round"/>
-        <circle cx="140" cy="50" r="3.4" fill="#1D4ED8"/>
-        <circle cx="46" cy="34" r="4" fill="#DBEAFE"/><circle cx="164" cy="66" r="3.4" fill="#DBEAFE"/>
+        <ellipse cx="100" cy="108" rx="62" ry="7" fill="var(--b50)"/>
+        <rect x="56" y="52" width="88" height="52" rx="8" fill="#fff" stroke="var(--b200)" stroke-width="2"/>
+        <rect x="68" y="64" width="12" height="12" rx="3" fill="var(--b100)"/>
+        <path d="M71 70.2l2.4 2.4 4.2-4.6" stroke="var(--b600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="86" y="67" width="44" height="5" rx="2.5" fill="var(--b50)"/>
+        <rect x="68" y="84" width="12" height="12" rx="3" fill="var(--b100)"/>
+        <path d="M71 90.2l2.4 2.4 4.2-4.6" stroke="var(--b600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="86" y="87" width="34" height="5" rx="2.5" fill="var(--b50)"/>
+        <path d="M100 16l40 16-40 16-40-16 40-16z" fill="var(--b600)"/>
+        <path d="M78 40v12c0 6 10 10 22 10s22-4 22-10V40l-22 9-22-9z" fill="var(--b500)"/>
+        <path d="M140 32v16" stroke="var(--b700)" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="140" cy="50" r="3.4" fill="var(--b700)"/>
+        <circle cx="46" cy="34" r="4" fill="var(--b100)"/><circle cx="164" cy="66" r="3.4" fill="var(--b100)"/>
       </svg>`
     },
     laptop: {
       label: '노트북 · 실습',
       svg: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="108" rx="62" ry="7" fill="#EFF6FF"/>
-        <rect x="56" y="30" width="88" height="58" rx="7" fill="#fff" stroke="#BFDBFE" stroke-width="2"/>
-        <rect x="66" y="40" width="68" height="38" rx="4" fill="#EFF6FF"/>
-        <rect x="74" y="48" width="30" height="5" rx="2.5" fill="#BFDBFE"/>
-        <rect x="74" y="59" width="46" height="5" rx="2.5" fill="#DBEAFE"/>
-        <rect x="74" y="68" width="22" height="4" rx="2" fill="#DBEAFE"/>
-        <path d="M44 88h112l-6 8H50l-6-8z" fill="#93C5FD"/>
-        <circle cx="152" cy="34" r="10" fill="#2563EB"/>
+        <ellipse cx="100" cy="108" rx="62" ry="7" fill="var(--b50)"/>
+        <rect x="56" y="30" width="88" height="58" rx="7" fill="#fff" stroke="var(--b200)" stroke-width="2"/>
+        <rect x="66" y="40" width="68" height="38" rx="4" fill="var(--b50)"/>
+        <rect x="74" y="48" width="30" height="5" rx="2.5" fill="var(--b200)"/>
+        <rect x="74" y="59" width="46" height="5" rx="2.5" fill="var(--b100)"/>
+        <rect x="74" y="68" width="22" height="4" rx="2" fill="var(--b100)"/>
+        <path d="M44 88h112l-6 8H50l-6-8z" fill="var(--b300)"/>
+        <circle cx="152" cy="34" r="10" fill="var(--b600)"/>
         <path d="M148.5 34l2.6 2.6 5-5.4" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`
     },
     calendar: {
       label: '일정 · 캘린더',
       svg: `<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="108" rx="62" ry="7" fill="#EFF6FF"/>
-        <rect x="60" y="30" width="80" height="72" rx="9" fill="#fff" stroke="#BFDBFE" stroke-width="2"/>
-        <path d="M60 39a9 9 0 0 1 9-9h62a9 9 0 0 1 9 9v13H60V39z" fill="#2563EB"/>
-        <rect x="76" y="22" width="6" height="16" rx="3" fill="#93C5FD"/>
-        <rect x="118" y="22" width="6" height="16" rx="3" fill="#93C5FD"/>
-        <rect x="72" y="62" width="14" height="12" rx="3" fill="#EFF6FF"/>
-        <rect x="93" y="62" width="14" height="12" rx="3" fill="#DBEAFE"/>
-        <rect x="114" y="62" width="14" height="12" rx="3" fill="#EFF6FF"/>
-        <rect x="72" y="80" width="14" height="12" rx="3" fill="#DBEAFE"/>
-        <rect x="93" y="80" width="14" height="12" rx="3" fill="#2563EB"/>
-        <rect x="114" y="80" width="14" height="12" rx="3" fill="#EFF6FF"/>
-        <circle cx="48" cy="46" r="4" fill="#DBEAFE"/>
+        <ellipse cx="100" cy="108" rx="62" ry="7" fill="var(--b50)"/>
+        <rect x="60" y="30" width="80" height="72" rx="9" fill="#fff" stroke="var(--b200)" stroke-width="2"/>
+        <path d="M60 39a9 9 0 0 1 9-9h62a9 9 0 0 1 9 9v13H60V39z" fill="var(--b600)"/>
+        <rect x="76" y="22" width="6" height="16" rx="3" fill="var(--b300)"/>
+        <rect x="118" y="22" width="6" height="16" rx="3" fill="var(--b300)"/>
+        <rect x="72" y="62" width="14" height="12" rx="3" fill="var(--b50)"/>
+        <rect x="93" y="62" width="14" height="12" rx="3" fill="var(--b100)"/>
+        <rect x="114" y="62" width="14" height="12" rx="3" fill="var(--b50)"/>
+        <rect x="72" y="80" width="14" height="12" rx="3" fill="var(--b100)"/>
+        <rect x="93" y="80" width="14" height="12" rx="3" fill="var(--b600)"/>
+        <rect x="114" y="80" width="14" height="12" rx="3" fill="var(--b50)"/>
+        <circle cx="48" cy="46" r="4" fill="var(--b100)"/>
       </svg>`
     }
   };
@@ -145,6 +205,7 @@
 
   window.OnboardingAssets = {
     ILLUST, ICON, illustSvg, iconSvg,
+    THEME_PRESETS, DEFAULT_THEME, normHex, makeRamp, applyTheme,
     illustList: Object.keys(ILLUST).map(k => ({ key: k, label: ILLUST[k].label })),
     iconList:   Object.keys(ICON).map(k => ({ key: k, label: ICON[k].label }))
   };

@@ -180,6 +180,7 @@
       courseName: course.courseName || '',
       tag: course.tag || '',
       active: course.active !== false,
+      themeColor: (window.OnboardingAssets && OnboardingAssets.normHex(course.themeColor)) || '#2563EB',
       previewUrl: course.previewUrl || '',
       autoUrl: course.autoUrl || '',
       startUrl: course.startUrl || '',

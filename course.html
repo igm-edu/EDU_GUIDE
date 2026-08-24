@@ -17,6 +17,19 @@
   </script>
 
   <style>
+    /* 테마 기본값 (과정별 색상이 로드되면 덮어써집니다) */
+    :root{
+      --b50:#EFF6FF;--b100:#DBEAFE;--b200:#BFDBFE;--b300:#93C5FD;--b400:#60A5FA;
+      --b500:#3B82F6;--b600:#2563EB;--b700:#1D4ED8;--b800:#1A3A8F;
+      --b-shadow:rgba(37,99,235,.26);
+    }
+    /* 브랜드 색 유틸 */
+    .text-b600{color:var(--b600)} .text-b800{color:var(--b800)}
+    .bg-b50{background:var(--b50)} .bg-b600{background:var(--b600)}
+    .hover\:text-b800:hover{color:var(--b800)}
+    .hover\:bg-b100:hover{background:var(--b100)}
+    .hover\:border-b200:hover{border-color:var(--b200)}
+
     [x-cloak]{display:none!important}
     body{font-family:'Pretendard',ui-sans-serif,system-ui;background:#F7F9FC;color:#111827}
 
@@ -33,15 +46,15 @@
 
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14px;
          border-radius:12px;padding:12px 22px;cursor:pointer;text-decoration:none;transition:all .18s;border:1px solid transparent}
-    .btn-primary{background:#2563EB;color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.26)}
-    .btn-primary:hover{background:#1D4ED8;transform:translateY(-1px)}
+    .btn-primary{background:var(--b600);color:#fff;box-shadow:0 4px 14px var(--b-shadow)}
+    .btn-primary:hover{background:var(--b700);transform:translateY(-1px)}
     .btn-primary:disabled{background:#D8DFEA;color:#9AA6B8;box-shadow:none;transform:none;cursor:not-allowed}
-    .btn-outline{background:#fff;color:#1D4ED8;border-color:#CBDCF8}
-    .btn-outline:hover{background:#F0F6FF;border-color:#93C5FD}
+    .btn-outline{background:#fff;color:var(--b700);border-color:var(--b200)}
+    .btn-outline:hover{background:var(--b50);border-color:var(--b300)}
     .btn-ghost{background:transparent;color:#64748B;padding:8px 12px;font-weight:600}
-    .btn-ghost:hover{color:#1D4ED8;background:#F0F6FF}
+    .btn-ghost:hover{color:var(--b700);background:var(--b50)}
 
-    .ic{width:38px;height:38px;border-radius:11px;background:#EAF1FE;color:#2563EB;
+    .ic{width:38px;height:38px;border-radius:11px;background:var(--b50);color:var(--b600);
         display:flex;align-items:center;justify-content:center;flex-shrink:0}
     /* 첫 줄 텍스트(13px × 1.6 ≒ 21px)와 세로 중심을 맞춘 아이콘 박스 */
     .rowic{width:20px;height:21px;color:#7C93B5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -51,14 +64,14 @@
               display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s}
     .stepcard.done{border-color:#A7E3C8;background:#FAFFFC}
     .taskrow{border:1px solid #EDF1F7;border-radius:12px;padding:12px 13px;transition:all .18s;background:#fff}
-    .taskrow.active{border-color:#BBD5FA;background:#F7FAFF}
+    .taskrow.active{border-color:var(--b200);background:var(--b50)}
     .taskrow.checked{border-color:#B6E7CF;background:#F6FDF9}
     .taskrow.locked{opacity:.5}
     .cbox{width:22px;height:22px;border:2px solid #D3DCE8;border-radius:7px;display:flex;align-items:center;
           justify-content:center;flex-shrink:0;cursor:pointer;transition:all .18s;background:#fff}
-    .cbox.on{background:#2563EB;border-color:#2563EB}
-    .prog{height:100%;border-radius:9999px;background:linear-gradient(90deg,#2563EB,#60A5FA);transition:width .6s cubic-bezier(.4,0,.2,1)}
-    .badge{display:inline-flex;align-items:center;gap:6px;background:#EAF1FE;color:#1D4ED8;font-size:12px;
+    .cbox.on{background:var(--b600);border-color:var(--b600)}
+    .prog{height:100%;border-radius:9999px;background:linear-gradient(90deg,var(--b600),var(--b400));transition:width .6s cubic-bezier(.4,0,.2,1)}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:var(--b50);color:var(--b700);font-size:12px;
            font-weight:700;padding:5px 12px;border-radius:8px}
     .note{display:flex;gap:9px;align-items:flex-start;background:#F4F7FD;border:1px solid #E4EBF6;
           border-radius:12px;padding:12px 14px;font-size:13px;color:#5A6B85;line-height:1.6}
@@ -96,7 +109,7 @@
   <!-- LOADING -->
   <main x-show="screen==='loading'" class="pt-16 min-h-screen flex items-center justify-center">
     <div class="flex flex-col items-center gap-3 text-gray-400">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="animate-spin" style="animation-duration:.8s"><circle cx="12" cy="12" r="10" stroke="#E5E7EB" stroke-width="3"/><path d="M22 12a10 10 0 0 1-10 10" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="animate-spin" style="animation-duration:.8s"><circle cx="12" cy="12" r="10" stroke="#E5E7EB" stroke-width="3"/><path d="M22 12a10 10 0 0 1-10 10" stroke="var(--b600)" stroke-width="3" stroke-linecap="round"/></svg>
       <span class="text-sm font-medium">불러오는 중…</span>
     </div>
   </main>
@@ -112,7 +125,7 @@
           <div x-show="hero.badge" class="badge mb-5" x-text="hero.badge"></div>
           <h1 class="text-[2rem] lg:text-[2.35rem] font-extrabold text-gray-900 leading-[1.28] mb-4">
             <template x-for="(ln, li) in hero.titleLines" :key="li">
-              <span class="block" :class="(hero.highlightLast && li===hero.titleLines.length-1) ? 'text-blue-600' : ''" x-text="ln"></span>
+              <span class="block" :class="(hero.highlightLast && li===hero.titleLines.length-1) ? 'text-b600' : ''" x-text="ln"></span>
             </template>
           </h1>
           <p class="text-[14px] text-gray-500 leading-relaxed whitespace-pre-line mb-7" x-text="hero.description"></p>
@@ -140,7 +153,7 @@
                       <span x-show="r.label" class="rowtx font-bold text-gray-800 w-[72px] flex-shrink-0" x-text="r.label"></span>
                       <span class="rowtx text-gray-600 flex-1 min-w-[160px] whitespace-pre-line" x-text="r.value"></span>
                       <template x-if="r.linkUrl">
-                        <a :href="r.linkUrl" target="_blank" rel="noopener" class="text-[12px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md transition-colors self-start">
+                        <a :href="r.linkUrl" target="_blank" rel="noopener" class="text-[12px] font-bold text-b600 hover:text-b800 bg-b50 hover:bg-b100 px-2 py-0.5 rounded-md transition-colors self-start">
                           <span x-text="r.linkLabel || '링크'"></span> ↗
                         </a>
                       </template>
@@ -168,15 +181,15 @@
               <div x-show="mapReady" id="kakaomap"></div>
               <template x-if="!mapReady">
                 <a :href="mapHref()" :target="mapHref()!=='#' ? '_blank' : '_self'" rel="noopener"
-                   class="soft flex flex-col items-center justify-center gap-2 py-9 text-center hover:border-blue-200 transition-colors"
+                   class="soft flex flex-col items-center justify-center gap-2 py-9 text-center hover:border-b200 transition-colors"
                    :class="mapHref()==='#' ? 'pointer-events-none' : ''">
                   <div class="ic" x-html="icon('pin', 19)"></div>
                   <span class="text-[13px] font-bold text-gray-700" x-text="dir.address || '주소 미등록'"></span>
-                  <span x-show="mapHref()!=='#'" class="text-[12px] font-bold text-blue-600">지도 보기 ↗</span>
+                  <span x-show="mapHref()!=='#'" class="text-[12px] font-bold text-b600">지도 보기 ↗</span>
                 </a>
               </template>
               <a x-show="mapReady && mapHref()!=='#'" :href="mapHref()" target="_blank" rel="noopener"
-                 class="mt-2 inline-flex text-[12px] font-bold text-blue-600 hover:text-blue-800">큰 지도로 보기 ↗</a>
+                 class="mt-2 inline-flex text-[12px] font-bold text-b600 hover:text-b800">큰 지도로 보기 ↗</a>
             </div>
 
             <!-- 교통편 -->
@@ -276,7 +289,7 @@
         <div class="min-w-[190px]">
           <div class="flex items-center justify-between text-[12px] mb-1.5">
             <span class="text-gray-400 font-semibold">진행률</span>
-            <span class="font-extrabold text-blue-600"><span x-text="completedCount()"></span>/<span x-text="STEPS.length"></span></span>
+            <span class="font-extrabold text-b600"><span x-text="completedCount()"></span>/<span x-text="STEPS.length"></span></span>
           </div>
           <div class="w-full h-2 bg-[#E9EEF6] rounded-full overflow-hidden">
             <div class="prog" :style="`width:${STEPS.length ? (completedCount()/STEPS.length)*100 : 0}%`"></div>
@@ -313,7 +326,7 @@
                       'locked': !canCheck(step.id,ti)}">
                   <div class="flex gap-2.5 items-start">
                     <div class="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0 transition-colors"
-                         :class="progress[step.id]?.checks[ti] ? 'bg-blue-600 text-white' : (canCheck(step.id,ti) ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400')">
+                         :class="progress[step.id]?.checks[ti] ? 'bg-b600 text-white' : (canCheck(step.id,ti) ? 'bg-b50 text-b600' : 'bg-gray-100 text-gray-400')">
                       <template x-if="progress[step.id]?.checks[ti]">
                         <svg width="12" height="12" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                       </template>
@@ -325,7 +338,7 @@
                       <p class="text-[12px] text-gray-500 leading-relaxed whitespace-pre-line" x-text="task.desc"></p>
                       <template x-if="task.link?.enabled && task.link?.url && canCheck(step.id,ti)">
                         <a :href="task.link.url" target="_blank" rel="noopener"
-                           class="inline-flex items-center gap-1 mt-2 text-[11px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md transition-colors">
+                           class="inline-flex items-center gap-1 mt-2 text-[11px] font-bold text-b600 hover:text-b800 bg-b50 hover:bg-b100 px-2.5 py-1 rounded-md transition-colors">
                           <span x-text="task.link.label || '링크 열기'"></span> ↗
                         </a>
                       </template>
@@ -378,7 +391,7 @@
   <main x-show="screen==='complete'" class="pt-16 min-h-screen flex items-center justify-center">
     <div class="max-w-lg mx-auto px-6 py-20 text-center w-full">
       <div class="flex justify-center mb-8">
-        <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center anim-scale-in">
+        <div class="w-20 h-20 bg-b600 rounded-full flex items-center justify-center anim-scale-in">
           <svg width="36" height="36" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24">
             <polyline points="20 6 9 17 4 12" class="anim-check"></polyline>
           </svg>
@@ -470,6 +483,7 @@ function app() {
       if (!course) { this.found=false; this.screen='notfound'; document.title='과정을 찾을 수 없습니다'; this.ready=true; return; }
 
       this.found = true;
+      OnboardingAssets.applyTheme(course.themeColor);   // 과정별 테마 색상 적용
       this.CONFIG = {
         courseName: course.courseName || '교육',
         previewUrl: course.previewUrl || '',
