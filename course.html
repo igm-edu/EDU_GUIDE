@@ -297,10 +297,11 @@
         </div>
       </div>
 
-      <!-- 단계 카드 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+      <!-- 단계 카드 — 개수가 달라져도 가운데 정렬 -->
+      <div class="flex flex-wrap justify-center gap-5">
         <template x-for="(step, si) in STEPS" :key="step.id">
-          <div class="stepcard p-6 fu" :class="{'done': progress[step.id]?.done}" :style="`animation-delay:${si*.07}s`">
+          <div class="stepcard p-6 fu basis-full sm:basis-[320px] grow max-w-full sm:max-w-[420px]"
+               :class="{'done': progress[step.id]?.done}" :style="`animation-delay:${si*.07}s`">
 
             <div class="h-[104px] flex items-center justify-center mb-4" x-html="illust(step.illust)"></div>
 
