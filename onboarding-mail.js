@@ -266,20 +266,52 @@
     return out;
   }
 
+  /* 과정에 걸려 있는 링크를 모아 버튼으로 — 설치·오픈채팅·사전설문 등
+     준비 단계의 CTA와 항목 링크가 같은 주소를 가리키는 경우가 많아 중복은 제거한다.
+     버튼 이름은 등록된 링크 제목을 그대로 사용. */
+  function collectLinks(course) {
+    const out = [], seen = new Set();
+    const add = (label, url) => {
+      if (!has(url)) return;
+      const key = String(url).trim();
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push({ label: has(label) ? String(label).trim() : '바로가기', url: key });
+    };
+    (course.steps || []).forEach(s => {
+      // 단계 버튼(cta)이 더 버튼다운 이름을 갖고 있어 우선
+      if (s.cta && has(s.cta.url)) add(s.cta.label || s.title, s.cta.url);
+      (s.tasks || []).forEach(tk => {
+        if (tk.link && tk.link.enabled && has(tk.link.url)) add(tk.link.label || tk.title, tk.link.url);
+      });
+    });
+    add('과정 교안 미리보기', course.previewUrl);
+    add('자동화 미리보기', course.autoUrl);
+    add('과정 시작하기', course.startUrl);
+    return out;
+  }
+
   function linksSection(course, t) {
-    const links = [];
-    if (has(course.previewUrl)) links.push({ label: '과정 교안 미리보기', url: course.previewUrl });
-    if (has(course.autoUrl))    links.push({ label: '자동화 미리보기',    url: course.autoUrl });
-    if (has(course.startUrl))   links.push({ label: '과정 시작하기',      url: course.startUrl });
+    const links = collectLinks(course);
     if (!links.length) return '';
 
-    let out = `<tr><td class="pad-side" align="center" style="padding:28px 36px 34px 36px; font-family:${FONT};">` +
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>`;
-    links.forEach(l => {
-      out += `<td style="padding:0 6px;"><a href="${attr(l.url)}" target="_blank" ` +
-        `style="display:inline-block; padding:11px 20px; border:1px solid ${t.c200}; border-radius:10px; font-size:13px; font-weight:bold; color:${t.c700}; text-decoration:none;">${escapeHtml(l.label)} &#8599;</a></td>`;
+    let out = divider(26, 0);
+    out += `<tr><td class="pad-side" style="padding:32px 36px 10px 36px; font-family:${FONT};">`;
+    out += heading('바로가기', t);
+    out += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">`;
+
+    links.forEach((l, i) => {
+      const gap = (i === links.length - 1) ? 0 : 10;
+      out += `<tr><td style="padding:0 0 ${gap}px 0;">` +
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${t.c50}" ` +
+        `style="background-color:${t.c50}; border:1px solid ${t.c200}; border-radius:10px;"><tr>` +
+        `<td align="center" style="padding:0;">` +
+        `<a href="${attr(l.url)}" target="_blank" style="display:block; padding:14px 18px; font-family:${FONT}; font-size:14px; font-weight:bold; color:${t.c700}; text-decoration:none;">` +
+        `${escapeHtml(l.label)} &#8599;</a>` +
+        `</td></tr></table></td></tr>`;
     });
-    out += `</tr></table></td></tr>`;
+
+    out += `</table></td></tr>`;
     return out;
   }
 
@@ -326,9 +358,9 @@
     const body =
       heroSection(course, t) +
       infoSection(course, t) +
+      linksSection(course, t) +          // 설치·오픈채팅·사전설문 등 바로가기 버튼
       curriculumSection(course, t) +
       directionsSection(course, t) +
-      linksSection(course, t) +
       footerSection();
 
     return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
