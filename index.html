@@ -728,8 +728,12 @@
             <button @click="mailWidth=375" class="text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
                     :class="mailWidth===375 ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'">모바일</button>
           </div>
-          <button @click="copyMail()" class="btn-outline !py-2 !px-3.5">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <button @click="copyMailRich()" class="btn-outline !py-2 !px-3.5" title="메일 작성창에 붙여넣으면 보이는 그대로 들어갑니다">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            서식 복사
+          </button>
+          <button @click="copyMail()" class="btn-outline !py-2 !px-3.5" title="타스온 등 HTML 소스 입력칸에 붙여넣기">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             소스 복사
           </button>
           <button @click="downloadMail()" class="btn-primary !py-2 !px-3.5">
@@ -749,9 +753,10 @@
       </div>
 
       <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 flex items-center gap-2 flex-wrap">
-        <span class="text-[11px] text-gray-400 flex-1 min-w-[240px]">
-          이미지는 배포 후에 보입니다 ·
-          <span class="font-mono" x-text="OnboardingMail.siteBase()"></span>
+        <span class="text-[11px] text-gray-400 flex-1 min-w-[300px] leading-relaxed">
+          <b class="text-gray-500">서식 복사</b> = 메일 작성창에 그대로 붙여넣기 ·
+          <b class="text-gray-500">소스 복사</b> = 타스온 등 HTML 소스 입력칸용(호환성 최상)<br>
+          이미지는 배포 후에 보입니다 · <span class="font-mono" x-text="OnboardingMail.siteBase()"></span>
         </span>
         <span class="text-[11px] font-semibold px-2 py-1 rounded-md"
               :class="mailChecks.ok ? 'text-emerald-700 bg-emerald-50' : 'text-amber-700 bg-amber-50'"
@@ -1082,10 +1087,61 @@ function hub() {
         : { ok: true, label: '메일 호환성 검사 통과' };
     },
 
+    // HTML 코드를 글자 그대로 복사 — 타스온 등 "소스 입력칸"용
     copyMail() {
-      const done = () => this.showToast('HTML 소스를 복사했습니다. 발송 도구에 붙여넣으세요.');
+      const done = () => this.showToast('HTML 소스를 복사했습니다. 발송 도구의 소스 입력칸에 붙여넣으세요.');
       if (navigator.clipboard?.writeText) navigator.clipboard.writeText(this.mailHtml).then(done).catch(() => this.fallbackCopy(this.mailHtml, done));
       else this.fallbackCopy(this.mailHtml, done);
+    },
+
+    /* 렌더된 모습 그대로 복사 — 메일 작성창(Outlook·네이버 등)용.
+       클립보드의 text/html 칸에 담아야 붙여넣을 때 서식이 살아납니다.
+       ※ 이 방식은 붙여넣는 편집기가 Outlook 전용 주석·미디어쿼리를 버립니다.
+          정확한 호환이 필요하면 "소스 복사"를 쓰세요. */
+    async copyMailRich() {
+      const html = this.mailHtml;
+      const plain = this.mailPlainText(html);
+      const done = () => this.showToast('서식을 복사했습니다. 메일 작성창에 그대로 붙여넣으세요.');
+
+      // 1순위: 클립보드에 text/html 형식으로 직접 기록
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          await navigator.clipboard.write([new ClipboardItem({
+            'text/html':  new Blob([html],  { type: 'text/html' }),
+            'text/plain': new Blob([plain], { type: 'text/plain' })
+          })]);
+          done(); return;
+        }
+      } catch (e) { /* 아래 방식으로 재시도 */ }
+
+      // 2순위: 화면 밖에 실제로 그린 뒤 선택해서 복사 (구형 브라우저·비보안 연결 대비)
+      try {
+        const host = document.createElement('div');
+        host.setAttribute('aria-hidden', 'true');
+        host.style.cssText = 'position:fixed; left:-99999px; top:0; width:640px; background:#fff;';
+        host.innerHTML = html.replace(/<!--[\s\S]*?-->/g, '');   // 조건부 주석 제거
+        document.body.appendChild(host);
+
+        const range = document.createRange();
+        range.selectNodeContents(host);
+        const sel = window.getSelection();
+        sel.removeAllRanges(); sel.addRange(range);
+        const ok = document.execCommand('copy');
+        sel.removeAllRanges();
+        document.body.removeChild(host);
+
+        if (ok) done();
+        else this.showToast('서식 복사에 실패했습니다. "소스 복사"를 이용해주세요.', true);
+      } catch (e) {
+        this.showToast('서식 복사에 실패했습니다. "소스 복사"를 이용해주세요.', true);
+      }
+    },
+
+    // 서식을 못 받는 곳에 붙여넣을 때 쓸 일반 텍스트
+    mailPlainText(html) {
+      const d = document.createElement('div');
+      d.innerHTML = html.replace(/<!--[\s\S]*?-->/g, '');
+      return (d.innerText || d.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
     },
 
     downloadMail() {
