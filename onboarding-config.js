@@ -21,5 +21,13 @@ window.ONBOARDING_CONFIG = {
   //  · developers.kakao.com → 앱 생성 → 앱 키의 "JavaScript 키"
   //  · 플랫폼 → Web → 사이트 도메인에 배포 주소를 등록해야 동작합니다.
   //  · 비워두면 지도 대신 "지도 보기" 링크 버튼이 표시됩니다.
-  kakaoJsKey:  "e2e693645288ff1d6909ae4f6bc5f4c1"
+  kakaoJsKey:  "e2e693645288ff1d6909ae4f6bc5f4c1",
+
+  // ── 메일 HTML 내보내기 ──
+  //  · siteUrl : 배포 주소. 메일 속 이미지·링크는 반드시 절대 주소여야 합니다.
+  //  · 아래 세 값은 메일 푸터에 표시됩니다.
+  siteUrl:           "https://igm-edu.github.io/EDU_GUIDE/",
+  mailFooterOrg:     "IGM 세계경영연구원",
+  mailFooterAddress: "서울 중구 장충단로8길 11-16",
+  mailFooterEmail:   ""    // 비우면 푸터에 문의 메일 줄이 표시되지 않습니다
 };
