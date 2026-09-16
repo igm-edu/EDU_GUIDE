@@ -133,7 +133,7 @@
       `<w:anchorlock/><center style="color:#ffffff; font-family:'Malgun Gothic',sans-serif; font-size:15px; font-weight:bold;">사전 준비 사항 확인하기 →</center>` +
       `</v:roundrect><![endif]-->` +
       `<!--[if !mso]><!-- -->` +
-      `<a href="${attr(cta)}" target="_blank" style="display:inline-block; padding:15px 38px; font-family:${FONT}; font-size:15px; font-weight:bold; color:#FFFFFF; text-decoration:none; border-radius:12px;">사전 준비 사항 확인하기 &rarr;</a>` +
+      `<a href="${attr(cta)}" target="_blank" class="btn-a" style="display:inline-block; padding:15px 34px; font-family:${FONT}; font-size:15px; line-height:20px; mso-line-height-rule:exactly; font-weight:bold; color:#FFFFFF; text-decoration:none; border-radius:12px; white-space:nowrap;">사전 준비 사항 확인하기 &rarr;</a>` +
       `<!--<![endif]-->` +
       `</td></tr></table></td></tr>`;
     return out;
@@ -306,7 +306,7 @@
         `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${t.c50}" ` +
         `style="background-color:${t.c50}; border:1px solid ${t.c200}; border-radius:10px;"><tr>` +
         `<td align="center" style="padding:0;">` +
-        `<a href="${attr(l.url)}" target="_blank" style="display:block; padding:14px 18px; font-family:${FONT}; font-size:14px; font-weight:bold; color:${t.c700}; text-decoration:none;">` +
+        `<a href="${attr(l.url)}" target="_blank" style="display:block; padding:13px 18px; font-family:${FONT}; font-size:14px; line-height:20px; mso-line-height-rule:exactly; font-weight:bold; color:${t.c700}; text-decoration:none;">` +
         `${escapeHtml(l.label)} &#8599;</a>` +
         `</td></tr></table></td></tr>`;
     });
@@ -383,9 +383,12 @@
     .pad-side { padding-left:22px !important; padding-right:22px !important; }
     .h1       { font-size:25px !important; line-height:36px !important; }
     .h2       { font-size:19px !important; line-height:28px !important; }
-    .btn a    { display:block !important; }
     .cur-time { white-space:nowrap !important; font-size:12px !important; }
     .cur-cell { padding-left:10px !important; padding-right:10px !important; }
+  }
+  /* 진짜 좁은 화면에서만 버튼을 가로 전체로. 600px 본문 폭에서는 적용되지 않습니다. */
+  @media screen and (max-width:480px) {
+    .btn-a { display:block !important; padding-left:16px !important; padding-right:16px !important; }
   }
 </style>
 </head>
