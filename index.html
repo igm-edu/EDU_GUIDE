@@ -1075,15 +1075,15 @@ function hub() {
     // file:// 로 열면 origin 이 "null" 이라 그대로 쓰면 메시지가 막힌다
     pvTarget() { return (location.origin && location.origin !== 'null') ? location.origin : '*'; },
 
+    /* Alpine 이 감싼 반응형 객체(Proxy)는 postMessage 로 보낼 수 없습니다.
+       JSON 왕복으로 순수 데이터만 남겨 전송합니다. */
     pvPayload() {
-      return {
-        type: 'onboarding:preview',
-        payload: {
-          course: fromForm(this.form),
-          defaultSteps: this.store.defaultSteps || [],
-          defaultFaq: this.store.defaultFaq || []
-        }
-      };
+      const plain = JSON.parse(JSON.stringify({
+        course: fromForm(this.form),
+        defaultSteps: this.store.defaultSteps || [],
+        defaultFaq: this.store.defaultFaq || []
+      }));
+      return { type: 'onboarding:preview', payload: plain };
     },
 
     sendPreview() {
