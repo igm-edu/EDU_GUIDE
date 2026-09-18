@@ -137,9 +137,25 @@
         참가자에게 반영하려면 <b>구글 시트 연동</b>(README 참고)을 켜거나, <b>내보내기</b>로 파일을 받아 다시 배포하세요.
       </div>
 
+      <!-- 진행 중 / 아카이브 탭 -->
+      <div class="flex items-center gap-1 mb-5 border-b border-gray-200">
+        <button @click="tab='active'" class="relative px-4 py-2.5 text-sm font-bold transition-colors"
+                :class="tab==='active' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'">
+          진행 중
+          <span class="ml-1 text-xs font-extrabold" x-text="'(' + liveCourses().length + ')'"></span>
+          <span x-show="tab==='active'" class="absolute left-0 right-0 -bottom-px h-0.5 bg-blue-600 rounded-full"></span>
+        </button>
+        <button @click="tab='archived'" class="relative px-4 py-2.5 text-sm font-bold transition-colors"
+                :class="tab==='archived' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'">
+          아카이브
+          <span class="ml-1 text-xs font-extrabold" x-text="'(' + archivedCourses().length + ')'"></span>
+          <span x-show="tab==='archived'" class="absolute left-0 right-0 -bottom-px h-0.5 bg-blue-600 rounded-full"></span>
+        </button>
+      </div>
+
       <!-- 과정 목록 -->
       <div class="space-y-4">
-        <template x-for="(c, ci) in store.courses" :key="ci">
+        <template x-for="(c, ci) in visibleCourses()" :key="c.slug + ':' + ci">
           <div class="card p-6 anim-fade-up">
             <div class="flex items-start justify-between gap-4 flex-wrap">
               <div class="min-w-0">
@@ -147,6 +163,7 @@
                   <span class="w-3 h-3 rounded-full flex-shrink-0 border border-black/5" :style="`background:${c.themeColor || '#2563EB'}`" title="테마 색상"></span>
                   <template x-if="c.tag"><span class="inline-flex items-center bg-blue-50 text-blue-600 text-[11px] font-bold px-2 py-0.5 rounded-full" x-text="c.tag"></span></template>
                   <template x-if="c.active === false"><span class="inline-flex items-center bg-gray-100 text-gray-500 text-[11px] font-bold px-2 py-0.5 rounded-full">숨김</span></template>
+                  <template x-if="c.archived"><span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-[11px] font-bold px-2 py-0.5 rounded-full">종료</span></template>
                   <span class="text-[11px] font-mono text-gray-400" x-text="'?c=' + c.slug"></span>
                 </div>
                 <h2 class="text-lg font-extrabold text-gray-900" x-text="c.courseName || '(이름 없음)'"></h2>
@@ -160,16 +177,24 @@
                   <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   열기
                 </a>
-                <button @click="openMail(ci)" class="btn-ghost" title="과정 안내 메일 HTML 만들기">
+                <button @click="openMail(idx(c))" class="btn-ghost" title="과정 안내 메일 HTML 만들기">
                   <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg>
                   메일
                 </button>
-                <button @click="editCourse(ci)" class="btn-outline !py-2 !px-3.5">편집</button>
-                <button @click="duplicateCourse(ci)" class="btn-ghost" title="복제">
+                <button x-show="!c.archived" @click="archiveCourse(idx(c), true)" class="btn-ghost" title="종료된 과정으로 보관">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="5" rx="1"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
+                  보관
+                </button>
+                <button x-show="c.archived" @click="archiveCourse(idx(c), false)" class="btn-ghost !text-blue-600 hover:!bg-blue-50" title="진행 중으로 되돌리기">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg>
+                  복원
+                </button>
+                <button @click="editCourse(idx(c))" class="btn-outline !py-2 !px-3.5">편집</button>
+                <button @click="duplicateCourse(idx(c))" class="btn-ghost" title="복제">
                   <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                   복제
                 </button>
-                <button @click="deleteCourse(ci)" class="btn-ghost !text-red-500 hover:!bg-red-50" title="삭제">
+                <button @click="deleteCourse(idx(c))" class="btn-ghost !text-red-500 hover:!bg-red-50" title="삭제">
                   <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 </button>
               </div>
@@ -191,8 +216,13 @@
           </div>
         </template>
 
-        <div x-show="store.courses.length === 0" class="card p-10 text-center text-sm text-gray-400">
-          아직 과정이 없습니다. 오른쪽 위 <b class="text-gray-600">새 과정 추가</b>를 눌러 시작하세요.
+        <div x-show="visibleCourses().length === 0" class="card p-10 text-center text-sm text-gray-400">
+          <template x-if="tab === 'archived'">
+            <span>보관된 과정이 없습니다. 끝난 과정은 카드의 <b class="text-gray-600">보관</b> 버튼으로 옮길 수 있어요.</span>
+          </template>
+          <template x-if="tab !== 'archived'">
+            <span>진행 중인 과정이 없습니다. 오른쪽 위 <b class="text-gray-600">새 과정 추가</b>를 눌러 시작하세요.</span>
+          </template>
         </div>
       </div>
     </div>
@@ -823,7 +853,7 @@ function cloneDir(d) {
 
 function blankCourse(store) {
   return {
-    slug: '', courseName: '', tag: '', active: true,
+    slug: '', courseName: '', tag: '', active: true, archived: false,
     themeColor: OnboardingAssets.DEFAULT_THEME,
     previewUrl: '', autoUrl: '', startUrl: '',
     hero: cloneHero(null, ''),
@@ -840,6 +870,7 @@ function toForm(course) {
   return {
     slug: course.slug || '', courseName: course.courseName || '', tag: course.tag || '',
     active: course.active !== false,
+    archived: course.archived === true,
     themeColor: OnboardingAssets.normHex(course.themeColor) || OnboardingAssets.DEFAULT_THEME,
     previewUrl: course.previewUrl || '', autoUrl: course.autoUrl || '', startUrl: course.startUrl || '',
     hero: cloneHero(course.hero, course.courseName),
@@ -857,6 +888,7 @@ function fromForm(form) {
     courseName: (form.courseName || '').trim(),
     tag: (form.tag || '').trim(),
     active: !!form.active,
+    archived: !!form.archived,
     themeColor: OnboardingAssets.normHex(form.themeColor) || OnboardingAssets.DEFAULT_THEME,
     previewUrl: (form.previewUrl || '').trim(),
     autoUrl: (form.autoUrl || '').trim(),
@@ -934,6 +966,7 @@ function hub() {
     saving: false,
     remoteEmpty: false,
     dataSource: '',
+    tab: 'active',   // 'active' | 'archived'
 
     // 메일 내보내기
     mailOpen: false,
@@ -966,6 +999,21 @@ function hub() {
     tryLogin() {
       if ((this.pwInput || '') === OnboardingAPI.config.hubPassword) { this.authed = true; this.screen = 'list'; }
       else { this.pwError = true; }
+    },
+
+    // ── 목록 필터 (진행 중 / 아카이브) ──
+    liveCourses()     { return (this.store.courses || []).filter(c => !c.archived); },
+    archivedCourses() { return (this.store.courses || []).filter(c => c.archived); },
+    visibleCourses()  { return this.tab === 'archived' ? this.archivedCourses() : this.liveCourses(); },
+    idx(c)            { return (this.store.courses || []).indexOf(c); },
+
+    // 종료된 과정 보관 / 되돌리기 — 참가자 링크는 그대로 열립니다
+    async archiveCourse(i, on) {
+      const c = this.store.courses[i];
+      if (!c) return;
+      if (on && !confirm(`"${c.courseName || c.slug}" 과정을 보관할까요?\n허브 목록에서만 감춰지고, 참가자에게 준 링크는 계속 열립니다.`)) return;
+      c.archived = !!on;
+      await this.persistCourse(c, on ? '과정을 보관했습니다.' : '과정을 진행 중으로 되돌렸습니다.');
     },
 
     // ── CRUD ──

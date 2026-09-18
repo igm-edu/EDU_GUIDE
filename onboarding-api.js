@@ -180,6 +180,7 @@
       courseName: course.courseName || '',
       tag: course.tag || '',
       active: course.active !== false,
+      archived: course.archived === true,   // 종료된 과정 보관 (허브 목록에서 감춤)
       themeColor: (window.OnboardingAssets && OnboardingAssets.normHex(course.themeColor)) || '#2563EB',
       previewUrl: course.previewUrl || '',
       autoUrl: course.autoUrl || '',
