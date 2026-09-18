@@ -361,6 +361,8 @@
       linksSection(course, t) +          // 설치·오픈채팅·사전설문 등 바로가기 버튼
       curriculumSection(course, t) +
       directionsSection(course, t) +
+      // 마지막 섹션이 무엇이든 푸터와 붙지 않도록 여백 확보
+      `<tr><td style="height:34px; line-height:34px; font-size:0;">&nbsp;</td></tr>` +
       footerSection();
 
     return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
