@@ -8,12 +8,37 @@
      · 레이아웃은 전부 <table role="presentation"> (flex/grid 금지)
      · CSS 변수 금지 → makeRamp() 결과를 리터럴 hex로 박아 넣음
      · 이미지·링크는 절대 URL (상대경로·data URI 금지)
-     · 600px 고정폭, <script> 없음
+     · 고정폭 카드(기본 700px) + 흰 배경, <script> 없음
 
    사용:  const html = OnboardingMail.buildMailHtml(course, course.themeColor);
    ============================================================================ */
 (function () {
   const CFG = window.ONBOARDING_CONFIG || {};
+
+  /* ── 레이아웃 수치 (필요하면 여기만 고치세요) ──
+     FLUID : true  = 메일 창 폭에 꽉 차게 (좌우 여백 없음)
+             false = WIDTH 값으로 고정하고 가운데 정렬 (메일 업계 표준 방식)
+     WIDTH : FLUID=false 일 때의 카드 폭. 600이 가장 안전한 표준입니다.
+     PAD   : 카드 좌우 안쪽 여백.                                                   */
+  const FLUID = false;
+  const WIDTH = 700;
+  const PAD   = 30;
+  const MOBILE_BP = WIDTH + 20;   // 이 폭 이하에서 모바일 보정 적용
+  const PX = PAD + 'px';
+
+  /* 메일 전체 배경색 (700px 본문 바깥 영역). '#FFFFFF' 로 바꾸면 회색 없이 흰 배경이 됩니다. */
+  const PAGE_BG = '#F7F9FC';
+
+  /* 버튼 크기 고정값.
+     높이는 위아래 여백이 아니라 line-height 로 만듭니다. 그래야 메일 클라이언트마다
+     글꼴이 달라도 높이가 그대로 유지됩니다. */
+  const CTA_H      = 50;    // 상단 큰 버튼 높이
+  const LINK_BTN_W = 260;   // 바로가기 버튼 폭
+  const LINK_BTN_H = 46;    // 바로가기 버튼 높이
+
+  // 꽉 채울 때와 고정폭일 때의 표 속성
+  const WRAP_W     = FLUID ? '100%' : String(WIDTH);
+  const WRAP_STYLE = FLUID ? 'width:100%; max-width:100%;' : `width:${WIDTH}px; max-width:${WIDTH}px;`;
 
   function siteBase() {
     let u = (CFG.siteUrl || 'https://igm-edu.github.io/EDU_GUIDE/').trim();
@@ -69,7 +94,7 @@
   const INK = '#111827', BODY = '#374151', MUTE = '#6B7280', LINE = '#EEF1F6';
 
   function divider(padTop, padBottom) {
-    return `<tr><td style="padding:${padTop}px 36px ${padBottom}px 36px;">` +
+    return `<tr><td style="padding:${padTop}px ${PX} ${padBottom}px ${PX};">` +
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>` +
       `<td height="1" bgcolor="${LINE}" style="height:1px; line-height:1px; font-size:0; background-color:${LINE};">&nbsp;</td>` +
       `</tr></table></td></tr>`;
@@ -100,7 +125,7 @@
         : escapeHtml(ln);
     }).join('<br />');
 
-    let out = `<tr><td class="pad-side" style="padding:40px 36px 0 36px; font-family:${FONT};">`;
+    let out = `<tr><td class="pad-side" style="padding:40px ${PX} 0 ${PX}; font-family:${FONT};">`;
     if (has(h.badge)) {
       out += `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>` +
         `<td bgcolor="${t.c50}" style="padding:6px 14px; background-color:${t.c50}; border-radius:100px; font-size:12px; font-weight:bold; color:${t.c700};">` +
@@ -117,23 +142,23 @@
     // 일러스트 (절대 URL PNG)
     if (has(h.illust)) {
       const src = siteBase() + MAIL_ASSET_DIR + h.illust + '-' + t.key + '.png';
-      out += `<tr><td align="center" style="padding:0 36px 4px 36px;">` +
+      out += `<tr><td align="center" style="padding:0 ${PX} 4px ${PX};">` +
         `<img src="${attr(src)}" width="360" alt="" style="width:360px; max-width:100%; height:auto; display:block; margin:0 auto;" />` +
         `</td></tr>`;
     }
 
     // CTA
     const cta = siteBase() + 'course.html?c=' + encodeURIComponent(course.slug || '');
-    out += `<tr><td align="center" class="pad-side" style="padding:16px 36px 34px 36px;">` +
+    out += `<tr><td align="center" class="pad-side" style="padding:16px ${PX} 34px ${PX};">` +
       `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" class="btn"><tr>` +
-      `<td align="center" bgcolor="${t.base}" style="border-radius:12px; background-color:${t.base};">` +
+      `<td align="center" height="${CTA_H}" bgcolor="${t.base}" style="height:${CTA_H}px; border-radius:12px; background-color:${t.base};">` +
       `<!--[if mso]>` +
       `<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${attr(cta)}" ` +
-      `style="height:50px; v-text-anchor:middle; width:280px;" arcsize="24%" stroke="f" fillcolor="${t.base}">` +
+      `style="height:${CTA_H}px; v-text-anchor:middle; width:280px;" arcsize="24%" stroke="f" fillcolor="${t.base}">` +
       `<w:anchorlock/><center style="color:#ffffff; font-family:'Malgun Gothic',sans-serif; font-size:15px; font-weight:bold;">사전 준비 사항 확인하기 →</center>` +
       `</v:roundrect><![endif]-->` +
       `<!--[if !mso]><!-- -->` +
-      `<a href="${attr(cta)}" target="_blank" class="btn-a" style="display:inline-block; padding:15px 34px; font-family:${FONT}; font-size:15px; line-height:20px; mso-line-height-rule:exactly; font-weight:bold; color:#FFFFFF; text-decoration:none; border-radius:12px; white-space:nowrap;">사전 준비 사항 확인하기 &rarr;</a>` +
+      `<a href="${attr(cta)}" target="_blank" class="btn-a" style="display:inline-block; height:${CTA_H}px; line-height:${CTA_H}px; mso-line-height-rule:exactly; padding:0 34px; font-family:${FONT}; font-size:15px; font-weight:bold; color:#FFFFFF; text-decoration:none; border-radius:12px; white-space:nowrap;">사전 준비 사항 확인하기 &rarr;</a>` +
       `<!--<![endif]-->` +
       `</td></tr></table></td></tr>`;
     return out;
@@ -148,7 +173,7 @@
     groups.forEach((g, gi) => {
       const rows = (g.rows || []).filter(r => has(r.label) || has(r.value));
       out += divider(gi === 0 ? 0 : 26, 0);
-      out += `<tr><td class="pad-side" style="padding:${gi === 0 ? 34 : 32}px 36px 8px 36px; font-family:${FONT};">`;
+      out += `<tr><td class="pad-side" style="padding:${gi === 0 ? 34 : 32}px ${PX} 8px ${PX}; font-family:${FONT};">`;
       if (has(g.title)) out += heading(g.title, t);
 
       if (rows.length) {
@@ -176,7 +201,7 @@
       out += `</td></tr>`;
 
       if (has(g.note)) {
-        out += `<tr><td class="pad-side" style="padding:16px 36px 0 36px;">${noteBox(g.note, t)}</td></tr>`;
+        out += `<tr><td class="pad-side" style="padding:16px ${PX} 0 ${PX};">${noteBox(g.note, t)}</td></tr>`;
       }
     });
     return out;
@@ -188,16 +213,33 @@
     const rows = (c.rows || []).filter(r => (r || []).some(has));
     if (!c.enabled || !rows.length || !cols.length) return '';
 
+    /* 첫 열이 시간표인지 판단 — 시간이면 좁게 고정, 아니면 내용에 맞춰 비율로 나눔.
+       한국어가 단어 중간에서 잘리지 않도록 word-break:keep-all 을 함께 준다. */
+    const firstIsTime = rows.every(r => !has(r[0]) || /^\s*\d{1,2}\s*:\s*\d{2}/.test(String(r[0])));
+    const n = cols.length;
+    let widths;
+    if (firstIsTime) {
+      const rest = Math.floor(100 / Math.max(1, n - 1));
+      widths = cols.map((_, i) => i === 0 ? '108px' : rest + '%');
+    } else if (n === 1) {
+      widths = ['100%'];
+    } else if (n === 2) {
+      widths = ['34%', '66%'];
+    } else {
+      const rest = Math.floor(72 / (n - 1));
+      widths = cols.map((_, i) => i === 0 ? '28%' : rest + '%');
+    }
+    const WRAP = 'word-break:keep-all; overflow-wrap:break-word;';
+
     let out = divider(26, 0);
-    out += `<tr><td class="pad-side" style="padding:32px 36px 10px 36px; font-family:${FONT};">`;
+    out += `<tr><td class="pad-side" style="padding:32px ${PX} 10px ${PX}; font-family:${FONT};">`;
     out += heading(c.title || '커리큘럼', t);
 
-    out += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${t.c200}; border-radius:12px; border-collapse:separate;">`;
+    out += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; table-layout:fixed; border:1px solid ${t.c200}; border-radius:12px; border-collapse:separate;">`;
     // 헤더
     out += `<tr>`;
     cols.forEach((col, ci) => {
-      const w = ci === 0 ? ' width="108"' : '';
-      out += `<td${w} bgcolor="${t.c50}" class="cur-cell" style="${ci === 0 ? 'width:108px; ' : ''}padding:12px 14px; background-color:${t.c50}; font-size:12px; font-weight:bold; color:${t.c700}; border-bottom:1px solid ${t.c200};">${escapeHtml(col)}</td>`;
+      out += `<td bgcolor="${t.c50}" class="cur-cell" style="width:${widths[ci]}; padding:12px 14px; background-color:${t.c50}; font-size:12px; font-weight:bold; color:${t.c700}; border-bottom:1px solid ${t.c200}; ${WRAP}">${escapeHtml(col)}</td>`;
     });
     out += `</tr>`;
     // 본문
@@ -209,12 +251,12 @@
         const cell = row[ci] == null ? '' : row[ci];
         let style, cls = 'cur-cell';
         if (ci === 0) {
-          style = `width:108px; padding:14px; font-size:13px; line-height:20px; color:${t.c600}; font-weight:bold;${bb}`;
-          cls += ' cur-time';
-        } else if (ci === cols.length - 1 && cols.length > 2) {
-          style = `padding:14px; font-size:13px; line-height:21px; color:${MUTE};${bb}`;
+          style = `width:${widths[ci]}; padding:14px; font-size:13px; line-height:21px; color:${t.c600}; font-weight:bold;${bb} ${WRAP}`;
+          if (firstIsTime) cls += ' cur-time';
+        } else if (ci === n - 1 && n > 2) {
+          style = `width:${widths[ci]}; padding:14px; font-size:13px; line-height:21px; color:${MUTE};${bb} ${WRAP}`;
         } else {
-          style = `padding:14px; font-size:14px; line-height:21px; font-weight:bold; color:${INK};${bb}`;
+          style = `width:${widths[ci]}; padding:14px; font-size:14px; line-height:21px; font-weight:bold; color:${INK};${bb} ${WRAP}`;
         }
         // 빈 셀은 삭제하면 표 구조가 어긋나므로 공백으로 채운다 (Outlook 테두리 붕괴 방지)
         out += `<td class="${cls}" valign="top" style="${style}">${has(cell) ? nl2br(cell) : '&nbsp;'}</td>`;
@@ -233,14 +275,15 @@
   function directionsSection(course, t) {
     const d = course.directions || {};
     if (!d.enabled) return '';
-    const transit = (d.transit || []).filter(x => has(x.label) || has(x.value));
+    // 내용이 비어 있는 교통편(라벨만 있는 행)은 표시하지 않는다
+    const transit = (d.transit || []).filter(x => has(x.value));
     if (!has(d.placeName) && !has(d.address) && !transit.length) return '';
 
     const mapUrl = has(d.mapLink) ? d.mapLink
       : (has(d.address) ? 'https://map.kakao.com/?q=' + encodeURIComponent(d.address) : '');
 
     let out = divider(26, 0);
-    out += `<tr><td class="pad-side" style="padding:32px 36px 8px 36px; font-family:${FONT};">`;
+    out += `<tr><td class="pad-side" style="padding:32px ${PX} 8px ${PX}; font-family:${FONT};">`;
     out += heading(d.title || '오시는 길', t);
     out += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">`;
 
@@ -261,7 +304,7 @@
     out += `</table></td></tr>`;
 
     if (has(d.note)) {
-      out += `<tr><td class="pad-side" style="padding:16px 36px 0 36px;">${noteBox(d.note, t)}</td></tr>`;
+      out += `<tr><td class="pad-side" style="padding:16px ${PX} 0 ${PX};">${noteBox(d.note, t)}</td></tr>`;
     }
     return out;
   }
@@ -296,17 +339,17 @@
     if (!links.length) return '';
 
     let out = divider(26, 0);
-    out += `<tr><td class="pad-side" style="padding:32px 36px 10px 36px; font-family:${FONT};">`;
+    out += `<tr><td class="pad-side" style="padding:32px ${PX} 10px ${PX}; font-family:${FONT};">`;
     out += heading('바로가기', t);
     out += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">`;
 
+    // 글자 길이와 상관없이 모두 같은 크기 (LINK_BTN_W)
     links.forEach((l, i) => {
       const gap = (i === links.length - 1) ? 0 : 10;
-      out += `<tr><td style="padding:0 0 ${gap}px 0;">` +
-        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${t.c50}" ` +
-        `style="background-color:${t.c50}; border:1px solid ${t.c200}; border-radius:10px;"><tr>` +
-        `<td align="center" style="padding:0;">` +
-        `<a href="${attr(l.url)}" target="_blank" style="display:block; padding:13px 18px; font-family:${FONT}; font-size:14px; line-height:20px; mso-line-height-rule:exactly; font-weight:bold; color:${t.c700}; text-decoration:none;">` +
+      out += `<tr><td align="center" style="padding:0 0 ${gap}px 0;">` +
+        `<table role="presentation" width="${LINK_BTN_W}" cellpadding="0" cellspacing="0" border="0" align="center" class="btn" style="width:${LINK_BTN_W}px;"><tr>` +
+        `<td align="center" height="${LINK_BTN_H}" bgcolor="${t.c50}" style="width:${LINK_BTN_W}px; height:${LINK_BTN_H}px; background-color:${t.c50}; border:1px solid ${t.c200}; border-radius:10px;">` +
+        `<a href="${attr(l.url)}" target="_blank" class="btn-a" style="display:block; height:${LINK_BTN_H}px; line-height:${LINK_BTN_H}px; mso-line-height-rule:exactly; padding:0 10px; text-align:center; font-family:${FONT}; font-size:14px; font-weight:bold; color:${t.c700}; text-decoration:none;">` +
         `${escapeHtml(l.label)} &#8599;</a>` +
         `</td></tr></table></td></tr>`;
     });
@@ -319,7 +362,7 @@
     const org = CFG.mailFooterOrg || 'IGM 세계경영연구원';
     const addr = CFG.mailFooterAddress || '';
     const email = CFG.mailFooterEmail || '';
-    let out = `<tr><td class="pad-side" bgcolor="${INK}" style="padding:26px 36px; background-color:${INK}; font-family:${FONT};">` +
+    let out = `<tr><td class="pad-side" bgcolor="${INK}" style="padding:26px ${PX}; background-color:${INK}; font-family:${FONT};">` +
       `<p style="margin:0 0 8px 0; font-size:13px; font-weight:bold; color:#FFFFFF;">${escapeHtml(org)}</p>`;
     if (addr || email) {
       out += `<p style="margin:0 0 12px 0; font-size:12px; line-height:20px; color:#9CA3AF;">`;
@@ -377,10 +420,12 @@
 <![endif]-->
 <style type="text/css">
   body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  /* 한국어 단어가 중간에서 잘리지 않도록 */
+  td, p, h1, h2, li { word-break:keep-all; overflow-wrap:break-word; }
   table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
   img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; display:block; }
   body { margin:0 !important; padding:0 !important; width:100% !important; }
-  @media screen and (max-width:620px) {
+  @media screen and (max-width:${MOBILE_BP}px) {
     .wrap     { width:100% !important; }
     .pad-side { padding-left:22px !important; padding-right:22px !important; }
     .h1       { font-size:25px !important; line-height:36px !important; }
@@ -388,36 +433,32 @@
     .cur-time { white-space:nowrap !important; font-size:12px !important; }
     .cur-cell { padding-left:10px !important; padding-right:10px !important; }
   }
-  /* 진짜 좁은 화면에서만 버튼을 가로 전체로. 600px 본문 폭에서는 적용되지 않습니다. */
+  /* 진짜 좁은 화면에서만 버튼을 가로 전체로. 높이는 그대로 유지합니다. */
   @media screen and (max-width:480px) {
-    .btn-a { display:block !important; padding-left:16px !important; padding-right:16px !important; }
+    .btn-a { display:block !important; padding-top:0 !important; padding-bottom:0 !important;
+             padding-left:12px !important; padding-right:12px !important; }
   }
 </style>
 </head>
 
-<body style="margin:0; padding:0; background-color:#F7F9FC;">
+<body style="margin:0; padding:0; background-color:${PAGE_BG};">
 
-<div style="display:none; font-size:1px; color:#F7F9FC; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
+<div style="display:none; font-size:1px; color:${PAGE_BG}; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
   ${escapeHtml(preheader(course))}
   &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
 </div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F7F9FC;">
+<table role="presentation" class="wrap" width="${WRAP_W}" align="center" cellpadding="0" cellspacing="0" border="0" style="${WRAP_STYLE} margin:0 auto; background-color:#FFFFFF;">
   <tr>
-    <td align="center" style="padding:28px 12px 40px 12px;">
-
-      <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px;">
-        <tr>
-          <td class="pad-side" style="padding:0 8px 16px 8px;">
-            <img src="${attr(siteBase() + 'igm-logo.png')}" width="150" alt="${attr(CFG.mailFooterOrg || 'IGM 세계경영연구원')}" style="width:150px; max-width:150px; height:auto; display:block;" />
-          </td>
-        </tr>
-      </table>
-
-      <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; background-color:#FFFFFF; border-radius:16px; overflow:hidden;">
+    <td class="pad-side" style="padding:24px ${PX} 14px ${PX};">
+      <img src="${attr(siteBase() + 'igm-logo.png')}" width="150" alt="${attr(CFG.mailFooterOrg || 'IGM 세계경영연구원')}" style="width:150px; max-width:150px; height:auto; display:block;" />
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; background-color:#FFFFFF;">
 ${body}
       </table>
-
     </td>
   </tr>
 </table>

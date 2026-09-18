@@ -481,14 +481,17 @@ function app() {
         this.preview = true;
         this.found = true;
         this.screen = 'landing';
+        // file:// 로 열면 origin 이 "null" 이므로 그 경우도 허용
+        const sameOrigin = (o) => !o || o === 'null' || o === location.origin;
         window.addEventListener('message', (e) => {
-          if (e.origin !== location.origin) return;              // 같은 사이트에서 온 것만
+          if (!sameOrigin(e.origin)) return;
           const d = e.data;
           if (!d || d.type !== 'onboarding:preview') return;
           this.applyDraft(d.payload);
         });
         if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ type: 'onboarding:preview-ready' }, location.origin);
+          const target = (location.origin && location.origin !== 'null') ? location.origin : '*';
+          window.parent.postMessage({ type: 'onboarding:preview-ready' }, target);
         }
         this.ready = true;
         return;
