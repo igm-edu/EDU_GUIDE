@@ -230,14 +230,53 @@
 
   <!-- ══════════════ EDIT ══════════════ -->
   <main x-show="screen === 'edit'" class="pt-16 min-h-screen">
-    <div class="max-w-2xl mx-auto px-6 py-10">
+    <div class="mx-auto px-6 py-10 grid gap-6 items-start"
+         :class="showPreview ? 'max-w-[1680px] xl:grid-cols-[minmax(0,660px)_minmax(0,1fr)]' : 'max-w-2xl'">
+
+      <!-- 우측 실시간 미리보기 (넓은 화면에서만) -->
+      <div x-show="showPreview" class="hidden xl:block order-2 sticky top-24">
+        <div class="card overflow-hidden">
+          <div class="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-gray-100 bg-gray-50/70">
+            <span class="text-xs font-extrabold text-gray-600">실시간 미리보기</span>
+            <div class="flex items-center gap-1.5">
+              <div class="flex bg-gray-200/70 rounded-md p-0.5">
+                <button @click="pvDevice='desktop'" class="text-[11px] font-bold px-2 py-1 rounded"
+                        :class="pvDevice==='desktop' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'">데스크톱</button>
+                <button @click="pvDevice='mobile'" class="text-[11px] font-bold px-2 py-1 rounded"
+                        :class="pvDevice==='mobile' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'">모바일</button>
+              </div>
+              <button @click="openPreviewWindow()" class="btn-ghost !px-2 !py-1" title="새 창에서 크게 보기">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </button>
+              <button @click="showPreview=false" class="btn-ghost !px-2 !py-1" title="미리보기 닫기">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="bg-[#F1F4F9] overflow-hidden" style="height:calc(100vh - 210px); min-height:520px;">
+            <iframe x-ref="pvFrame" src="course.html?c=__preview__" title="편집 내용 미리보기"
+                    class="border-0 bg-white origin-top-left"
+                    :style="pvStyle()"></iframe>
+          </div>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-2 px-1">저장하기 전 화면입니다. 실제 반영은 아래 <b>저장</b>을 눌러야 합니다.</p>
+      </div>
+
+      <!-- 좌: 편집 폼 -->
+      <div class="order-1 min-w-0">
 
       <button @click="cancelEdit()" class="btn-ghost mb-6 -ml-1">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         목록으로
       </button>
 
-      <h1 class="text-[1.5rem] font-extrabold text-gray-900 mb-6" x-text="editIndex === -1 ? '새 과정 추가' : '과정 편집'"></h1>
+      <div class="flex items-center justify-between gap-3 mb-6">
+        <h1 class="text-[1.5rem] font-extrabold text-gray-900" x-text="editIndex === -1 ? '새 과정 추가' : '과정 편집'"></h1>
+        <button x-show="!showPreview" @click="showPreview=true" class="btn-outline !py-2 !px-3.5 hidden xl:inline-flex">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          미리보기 켜기
+        </button>
+      </div>
 
       <!-- 기본 정보 -->
       <div class="card p-6 mb-5">
@@ -738,6 +777,8 @@
           <span x-text="saving ? '저장 중…' : '저장'"></span>
         </button>
       </div>
+
+      </div><!-- /편집 폼 -->
     </div>
   </main>
 
@@ -753,8 +794,8 @@
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <div class="flex bg-gray-100 rounded-lg p-0.5">
-            <button @click="mailWidth=600" class="text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
-                    :class="mailWidth===600 ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'">데스크톱</button>
+            <button @click="mailWidth=700" class="text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+                    :class="mailWidth===700 ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'">데스크톱</button>
             <button @click="mailWidth=375" class="text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
                     :class="mailWidth===375 ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'">모바일</button>
           </div>
@@ -968,11 +1009,17 @@ function hub() {
     dataSource: '',
     tab: 'active',   // 'active' | 'archived'
 
+    // 편집 화면 실시간 미리보기
+    showPreview: true,
+    pvDevice: 'desktop',
+    pvReady: false,
+    _pvTimer: null,
+
     // 메일 내보내기
     mailOpen: false,
     mailCourse: null,
     mailHtml: '',
-    mailWidth: 600,
+    mailWidth: 700,
     mailChecks: { ok: true, label: '' },
 
     linkFields: [
@@ -994,11 +1041,60 @@ function hub() {
       const pw = OnboardingAPI.config.hubPassword;
       if (pw) { this.authed = false; this.screen = 'locked'; }
       else    { this.authed = true;  this.screen = 'list'; }
+
+      // 미리보기 iframe 이 준비되면 현재 초안을 보냄
+      window.addEventListener('message', (e) => {
+        if (e.origin !== location.origin) return;
+        if (e.data && e.data.type === 'onboarding:preview-ready') { this.pvReady = true; this.sendPreview(); }
+      });
+      // 편집 중 입력이 바뀌면 미리보기에 반영 (0.25초 디바운스)
+      this.$watch('form', () => this.queuePreview(), { deep: true });
+      this.$watch('showPreview', () => this.$nextTick(() => this.sendPreview()));
+      this.$watch('pvDevice',   () => this.$nextTick(() => this.sendPreview()));
     },
 
     tryLogin() {
       if ((this.pwInput || '') === OnboardingAPI.config.hubPassword) { this.authed = true; this.screen = 'list'; }
       else { this.pwError = true; }
+    },
+
+    /* ── 편집 화면 실시간 미리보기 ──
+       실제 참가자 페이지(course.html)를 iframe 으로 띄우고, 편집 중인 초안을
+       postMessage 로 넘겨 그대로 렌더합니다. 저장 전이라 실제 데이터는 그대로입니다. */
+    pvStyle() {
+      const w = this.pvDevice === 'mobile' ? 420 : 1180;
+      const box = 640;                       // 미리보기 칸의 대략적인 가로 폭
+      const scale = Math.min(1, box / w);
+      return `width:${w}px; height:${Math.round(100 / scale)}vh; transform:scale(${scale.toFixed(3)});`;
+    },
+    sendPreview() {
+      if (!this.showPreview || !this.form) return;
+      const f = this.$refs.pvFrame;
+      if (!f || !f.contentWindow) return;
+      try {
+        f.contentWindow.postMessage({
+          type: 'onboarding:preview',
+          payload: {
+            course: fromForm(this.form),
+            defaultSteps: this.store.defaultSteps || [],
+            defaultFaq: this.store.defaultFaq || []
+          }
+        }, location.origin);
+      } catch (e) {}
+    },
+    queuePreview() {
+      clearTimeout(this._pvTimer);
+      this._pvTimer = setTimeout(() => this.sendPreview(), 250);
+    },
+    openPreviewWindow() {
+      const w = window.open('course.html?c=__preview__', 'onboarding-preview', 'width=1200,height=900');
+      if (!w) { this.showToast('팝업이 차단되었습니다. 브라우저에서 허용해주세요.', true); return; }
+      // 새 창이 준비되면 초안을 보냄
+      const send = () => { try { w.postMessage({
+        type: 'onboarding:preview',
+        payload: { course: fromForm(this.form), defaultSteps: this.store.defaultSteps || [], defaultFaq: this.store.defaultFaq || [] }
+      }, location.origin); } catch (e) {} };
+      setTimeout(send, 600); setTimeout(send, 1400);
     },
 
     // ── 목록 필터 (진행 중 / 아카이브) ──
@@ -1023,6 +1119,7 @@ function hub() {
       this.slugError = '';
       this.screen = 'edit';
       window.scrollTo(0, 0);
+      this.$nextTick(() => this.sendPreview());
     },
     editCourse(i) {
       this.editIndex = i;
@@ -1030,6 +1127,7 @@ function hub() {
       this.slugError = '';
       this.screen = 'edit';
       window.scrollTo(0, 0);
+      this.$nextTick(() => this.sendPreview());
     },
     async duplicateCourse(i) {
       const src = this.store.courses[i];
@@ -1113,7 +1211,7 @@ function hub() {
         return;
       }
       this.mailChecks = this.checkMail(this.mailHtml);
-      this.mailWidth = 600;
+      this.mailWidth = 700;
       this.mailOpen = true;
       this.$nextTick(() => {
         const f = this.$refs.mailFrame;
