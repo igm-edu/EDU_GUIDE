@@ -181,6 +181,8 @@
       tag: course.tag || '',
       active: course.active !== false,
       archived: course.archived === true,   // 종료된 과정 보관 (허브 목록에서 감춤)
+      division: course.division || 'main',  // 소속 본부
+
       themeColor: (window.OnboardingAssets && OnboardingAssets.normHex(course.themeColor)) || '#2563EB',
       previewUrl: course.previewUrl || '',
       autoUrl: course.autoUrl || '',
@@ -194,11 +196,31 @@
     };
   }
 
+  /* 본부 목록 — hub 안에 담아두면 Apps Script 를 고치지 않아도 시트에 저장됩니다.
+     목록이 없으면 설정의 기본 암호로 본부 하나를 만들어 둡니다. */
+  function normDivisions(hub) {
+    hub = hub || {};
+    let list = Array.isArray(hub.divisions) ? hub.divisions : [];
+    list = list
+      .map(d => ({
+        key: String((d && d.key) || '').trim(),
+        label: String((d && d.label) || '').trim(),
+        password: String((d && d.password) || '')
+      }))
+      .filter(d => d.key);
+    if (!list.length) {
+      list = [{ key: 'main', label: '기본 본부', password: CFG.hubPassword || '' }];
+    }
+    return list;
+  }
+
   function migrateStore(s) {
     s = s || {};
     const rawDefaults = Array.isArray(s.defaultSteps) ? s.defaultSteps : [];
+    const hub = Object.assign({}, s.hub || {});
+    hub.divisions = normDivisions(hub);
     return {
-      hub: s.hub || {},
+      hub: hub,
       defaultSteps: rawDefaults.map(ds => migrateStep(ds, ds, '')),
       defaultFaq: Array.isArray(s.defaultFaq) ? s.defaultFaq : [],
       courses: (Array.isArray(s.courses) ? s.courses : []).map(c => migrateCourse(c, rawDefaults))
@@ -376,7 +398,7 @@
     load, save, saveCourse, deleteCourse, buildSteps, normalizeImg, migrateStore, migrateCourse,
     blankStep, blankTask, blankInfoRow, blankInfoGroup, blankTransit,
     sampleInfo, sampleDirections, sampleCurriculum,
-    normInfo, normHero, normDirections, normCurriculum,
+    normInfo, normHero, normDirections, normCurriculum, normDivisions,
     readCache, writeCache, seedStore, exportDataJs, isEmptyStore,
     isRemote: !!CFG.apiUrl, config: CFG, seed: SEED
   };

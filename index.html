@@ -53,7 +53,10 @@
         <span class="text-sm font-bold text-gray-300">|</span>
         <span class="text-sm font-bold text-gray-600" x-text="store.hub?.title || '온보딩 허브'"></span>
       </div>
-      <div x-show="authed" class="flex items-center gap-3">
+      <div x-show="authed" class="flex items-center gap-2">
+        <span class="text-[11px] font-bold px-2.5 py-1 rounded-full"
+              :class="isMaster() ? 'text-violet-700 bg-violet-50' : 'text-blue-700 bg-blue-50'"
+              x-text="isMaster() ? '마스터 · 전체' : divisionLabel(myDivision)"></span>
         <span class="text-[11px] font-bold px-2.5 py-1 rounded-full"
               :class="isRemote ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500 bg-gray-100'"
               x-text="isRemote ? '시트 연동' : '로컬 모드'"></span>
@@ -137,6 +140,42 @@
         참가자에게 반영하려면 <b>구글 시트 연동</b>(README 참고)을 켜거나, <b>내보내기</b>로 파일을 받아 다시 배포하세요.
       </div>
 
+      <!-- 본부 관리 (마스터 전용) -->
+      <div x-show="isMaster()" class="card p-5 mb-5">
+        <button @click="divOpen = !divOpen" class="w-full flex items-center justify-between text-left">
+          <span class="text-sm font-extrabold text-gray-900 flex items-center gap-2">
+            <svg width="16" height="16" fill="none" stroke="#7C3AED" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            본부 관리
+            <span class="text-xs font-bold text-gray-400" x-text="'(' + (store.hub.divisions||[]).length + '개)'"></span>
+          </span>
+          <svg width="16" height="16" fill="none" stroke="#6B7280" stroke-width="2.5" viewBox="0 0 24 24" class="transition-transform" :class="divOpen?'rotate-180':''"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <div x-show="divOpen" class="mt-4">
+          <p class="text-xs text-gray-400 mb-3">본부별 암호를 입력하면 그 본부 과정만 보입니다. 마스터 암호는 설정 파일에서 관리합니다.</p>
+          <div class="space-y-2">
+            <template x-for="(d, di) in store.hub.divisions" :key="di">
+              <div class="flex gap-2 items-center bg-gray-50/60 border border-gray-100 rounded-xl p-2.5">
+                <input type="text" x-model="d.label" class="inp !py-1.5 flex-1" placeholder="본부 이름 (예: 기업교육본부)">
+                <input type="text" x-model="d.key" class="inp !py-1.5 !w-28 font-mono text-xs" placeholder="코드">
+                <input type="text" x-model="d.password" class="inp !py-1.5 !w-40 font-mono text-xs" placeholder="암호">
+                <span class="text-[11px] text-gray-400 w-12 text-right flex-shrink-0" x-text="courseCountOf(d.key) + '개'"></span>
+                <button type="button" @click="removeDivision(di)" class="btn-ghost !text-red-400 hover:!bg-red-50 !px-1.5 flex-shrink-0" title="본부 삭제">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </template>
+          </div>
+          <div class="flex items-center gap-2 mt-3">
+            <button @click="addDivision()" class="btn-ghost !text-blue-600 hover:!bg-blue-50 text-xs">+ 본부 추가</button>
+            <div class="flex-1"></div>
+            <button @click="saveDivisions()" :disabled="saving" class="btn-primary !py-2 !px-4">
+              <span x-text="saving ? '저장 중…' : '본부 설정 저장'"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- 진행 중 / 아카이브 탭 -->
       <div class="flex items-center gap-1 mb-5 border-b border-gray-200">
         <button @click="tab='active'" class="relative px-4 py-2.5 text-sm font-bold transition-colors"
@@ -164,6 +203,7 @@
                   <template x-if="c.tag"><span class="inline-flex items-center bg-blue-50 text-blue-600 text-[11px] font-bold px-2 py-0.5 rounded-full" x-text="c.tag"></span></template>
                   <template x-if="c.active === false"><span class="inline-flex items-center bg-gray-100 text-gray-500 text-[11px] font-bold px-2 py-0.5 rounded-full">숨김</span></template>
                   <template x-if="c.archived"><span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-[11px] font-bold px-2 py-0.5 rounded-full">종료</span></template>
+                  <template x-if="isMaster()"><span class="inline-flex items-center bg-violet-50 text-violet-700 text-[11px] font-bold px-2 py-0.5 rounded-full" x-text="divisionLabel(c.division)"></span></template>
                   <span class="text-[11px] font-mono text-gray-400" x-text="'?c=' + c.slug"></span>
                 </div>
                 <h2 class="text-lg font-extrabold text-gray-900" x-text="c.courseName || '(이름 없음)'"></h2>
@@ -300,6 +340,15 @@
           <div>
             <label class="lbl">분류 태그 (선택)</label>
             <input type="text" x-model="form.tag" class="inp" placeholder="예) AI 활용">
+          </div>
+          <div x-show="isMaster()" class="col-span-2">
+            <label class="lbl">소속 본부</label>
+            <select x-model="form.division" class="inp">
+              <template x-for="d in store.hub.divisions" :key="d.key">
+                <option :value="d.key" x-text="(d.label || d.key)"></option>
+              </template>
+            </select>
+            <p class="text-[11px] text-gray-400 mt-1">해당 본부 암호로 들어온 담당자에게만 보입니다.</p>
           </div>
           <div class="col-span-2 flex items-center gap-2">
             <button type="button" @click="form.active = !form.active"
@@ -898,7 +947,7 @@ function cloneDir(d) {
 
 function blankCourse(store) {
   return {
-    slug: '', courseName: '', tag: '', active: true, archived: false,
+    slug: '', courseName: '', tag: '', active: true, archived: false, division: 'main',
     themeColor: OnboardingAssets.DEFAULT_THEME,
     previewUrl: '', autoUrl: '', startUrl: '',
     hero: cloneHero(null, ''),
@@ -916,6 +965,7 @@ function toForm(course) {
     slug: course.slug || '', courseName: course.courseName || '', tag: course.tag || '',
     active: course.active !== false,
     archived: course.archived === true,
+    division: course.division || 'main',
     themeColor: OnboardingAssets.normHex(course.themeColor) || OnboardingAssets.DEFAULT_THEME,
     previewUrl: course.previewUrl || '', autoUrl: course.autoUrl || '', startUrl: course.startUrl || '',
     hero: cloneHero(course.hero, course.courseName),
@@ -934,6 +984,7 @@ function fromForm(form) {
     tag: (form.tag || '').trim(),
     active: !!form.active,
     archived: !!form.archived,
+    division: (form.division || 'main').trim(),
     themeColor: OnboardingAssets.normHex(form.themeColor) || OnboardingAssets.DEFAULT_THEME,
     previewUrl: (form.previewUrl || '').trim(),
     autoUrl: (form.autoUrl || '').trim(),
@@ -1004,6 +1055,9 @@ function hub() {
     screen: 'loading',
     authed: false,
     pwInput: '', pwError: false,
+    role: '',           // 'master' | 'division'
+    myDivision: null,   // 본부 암호로 들어온 경우의 본부 key
+    divOpen: false,     // 본부 관리 펼침 (마스터 전용)
 
     editIndex: -1,
     form: null,
@@ -1058,9 +1112,65 @@ function hub() {
       this.$watch('pvDevice',   () => this.$nextTick(() => this.sendPreview()));
     },
 
+    /* 암호에 따라 보이는 범위가 달라집니다.
+       · 마스터 암호  → 모든 본부 + 본부·암호 관리
+       · 본부 암호    → 그 본부 과정만 */
     tryLogin() {
-      if ((this.pwInput || '') === OnboardingAPI.config.hubPassword) { this.authed = true; this.screen = 'list'; }
-      else { this.pwError = true; }
+      const pw = this.pwInput || '';
+      const master = OnboardingAPI.config.masterPassword || '';
+      if (master && pw === master) {
+        this.role = 'master'; this.myDivision = null;
+        this.authed = true; this.screen = 'list'; this.pwError = false;
+        return;
+      }
+      const d = (this.store.hub.divisions || []).find(x => x.password && x.password === pw);
+      if (d) {
+        this.role = 'division'; this.myDivision = d.key;
+        this.authed = true; this.screen = 'list'; this.pwError = false;
+        return;
+      }
+      this.pwError = true;
+    },
+
+    isMaster() { return this.role === 'master'; },
+    divisionLabel(key) {
+      const d = (this.store.hub.divisions || []).find(x => x.key === key);
+      return d ? (d.label || d.key) : (key || '미지정');
+    },
+    // ── 본부 관리 (마스터 전용) ──
+    courseCountOf(key) { return (this.store.courses || []).filter(c => (c.division || 'main') === key).length; },
+    addDivision() {
+      let n = 2, key = 'div2';
+      while ((this.store.hub.divisions || []).some(d => d.key === key)) key = 'div' + (++n);
+      this.store.hub.divisions.push({ key: key, label: '새 본부', password: '' });
+      this.divOpen = true;
+    },
+    removeDivision(i) {
+      const d = this.store.hub.divisions[i];
+      if (!d) return;
+      const n = this.courseCountOf(d.key);
+      if (n > 0) { this.showToast(`"${d.label || d.key}" 본부에 과정이 ${n}개 있어 삭제할 수 없습니다. 먼저 옮겨주세요.`, true); return; }
+      if ((this.store.hub.divisions || []).length <= 1) { this.showToast('본부는 최소 1개가 필요합니다.', true); return; }
+      if (!confirm(`"${d.label || d.key}" 본부를 삭제할까요?`)) return;
+      this.store.hub.divisions.splice(i, 1);
+    },
+    async saveDivisions() {
+      const list = this.store.hub.divisions || [];
+      // 코드 중복·공란 검사
+      const keys = list.map(d => (d.key || '').trim());
+      if (keys.some(k => !k)) { this.showToast('본부 코드를 모두 입력해주세요.', true); return; }
+      if (new Set(keys).size !== keys.length) { this.showToast('본부 코드가 중복됐습니다.', true); return; }
+      const pws = list.map(d => d.password).filter(Boolean);
+      if (new Set(pws).size !== pws.length) { this.showToast('본부 암호가 중복됐습니다.', true); return; }
+      if (pws.includes(OnboardingAPI.config.masterPassword)) { this.showToast('마스터 암호와 같은 값은 쓸 수 없습니다.', true); return; }
+      await this.persist('본부 설정을 저장했습니다.');
+    },
+
+    // 현재 로그인 범위에 해당하는 과정만
+    scopeCourses() {
+      const all = this.store.courses || [];
+      if (this.isMaster()) return all;
+      return all.filter(c => (c.division || 'main') === this.myDivision);
     },
 
     /* ── 편집 화면 실시간 미리보기 ──
@@ -1109,8 +1219,8 @@ function hub() {
     },
 
     // ── 목록 필터 (진행 중 / 아카이브) ──
-    liveCourses()     { return (this.store.courses || []).filter(c => !c.archived); },
-    archivedCourses() { return (this.store.courses || []).filter(c => c.archived); },
+    liveCourses()     { return this.scopeCourses().filter(c => !c.archived); },
+    archivedCourses() { return this.scopeCourses().filter(c => c.archived); },
     visibleCourses()  { return this.tab === 'archived' ? this.archivedCourses() : this.liveCourses(); },
     idx(c)            { return (this.store.courses || []).indexOf(c); },
 
@@ -1127,6 +1237,8 @@ function hub() {
     addCourse() {
       this.editIndex = -1;
       this.form = blankCourse(this.store);
+      // 새 과정은 현재 로그인한 본부로 (마스터는 첫 번째 본부)
+      this.form.division = this.myDivision || ((this.store.hub.divisions || [])[0] || {}).key || 'main';
       this.slugError = '';
       this.screen = 'edit';
       window.scrollTo(0, 0);
@@ -1149,6 +1261,7 @@ function hub() {
       while (this.store.courses.some(c => c.slug === s)) s = base + '-' + (n++);
       copy.slug = s;
       copy.courseName = (src.courseName || '') + ' (복사본)';
+      copy.division = src.division || this.myDivision || 'main';
       this.store.courses.splice(i + 1, 0, copy);
       await this.persistCourse(copy, '과정을 복제했습니다.');
       // 복제본 바로 편집 열기

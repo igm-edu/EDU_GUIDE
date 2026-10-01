@@ -15,7 +15,12 @@
 window.ONBOARDING_CONFIG = {
   apiUrl:      "https://script.google.com/macros/s/AKfycbxLoqKoBcztDpH5eDllC3DrHBH3UwHZh3fqC2x-wr6g3Qya64BdsjUUJrnsQGKTu4T7/exec",          // 예) https://script.google.com/macros/s/AKfyc.../exec
   apiToken:    "igm2026",          // 예) igm-onboarding-2026
+  // 기본 본부 암호 (처음 한 번 본부 목록을 만들 때 사용됩니다)
   hubPassword: "igm2026",
+
+  /* 마스터 암호 — 모든 본부의 과정을 보고, 본부·암호를 관리할 수 있습니다.
+     본부 담당자에게는 알려주지 마세요. */
+  masterPassword: "masterkey",
 
   // 카카오맵 JavaScript 키 (선택)
   //  · developers.kakao.com → 앱 생성 → 앱 키의 "JavaScript 키"
